@@ -1,0 +1,295 @@
+<style>
+  #slide5 { text-transform: uppercase; }
+  .proc-table { width: 100%; border-collapse: collapse; background: var(--card-bg, #ffffff); font-size: 0.85rem; }
+  .proc-table thead th { background: var(--accent, #1976d2); color: white; padding: 10px; text-align: left; font-weight: 600; position: sticky; top: 0; z-index: 10; border: 1px solid #455a64; }
+  .proc-row-header { cursor: pointer; border-bottom: 1px solid var(--border-color, #e0e0e0); transition: background 0.1s; }
+  .proc-row-header:hover { background-color: var(--table-row-hover, #f5f5f5); }
+  .proc-row-header.active { background-color: var(--input-bg, #f8f9fa); border-left: 4px solid var(--accent, #1976d2); }
+  .proc-cell { padding: 8px 10px; border: 1px solid var(--border-color, #e0e0e0); color: var(--text-main, #333); vertical-align: middle; }
+
+  .filters-container { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; align-items: center; }
+  .custom-dropdown { position: relative; display: inline-block; }
+  .drop-btn { background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e0e0e0); padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 0.95rem; color: var(--text-muted, #666); font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 160px; }
+  .drop-btn:hover { border-color: var(--accent, #1976d2); color: var(--accent, #1976d2); }
+  .drop-btn.active-filter { background: var(--accent-light, #e3f2fd); color: var(--text-main, #333); border-color: var(--accent, #1976d2); }
+  .dropdown-content { display: none; position: absolute; top: 110%; left: 0; background-color: var(--card-bg, #fff); min-width: 250px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); z-index: 100; border: 1px solid var(--border-color, #e0e0e0); border-radius: 8px; padding: 10px; max-height: 300px; overflow-y: auto; }
+  .dropdown-content.show { display: block; animation: fadeIn 0.2s; }
+  .drop-search { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid var(--border-color, #e0e0e0); border-radius: 4px; font-size: 0.9rem; box-sizing: border-box; text-transform: uppercase; }
+  .checkbox-item { display: flex; align-items: center; padding: 8px; cursor: pointer; font-size: 0.9rem; color: var(--text-main, #333); border-radius: 4px; }
+  .checkbox-item:hover { background-color: var(--input-bg, #f5f5f5); }
+  .checkbox-item input { margin-right: 10px; accent-color: var(--accent, #1976d2); width: 16px; height: 16px; }
+  #globalSearch { padding: 10px 16px; border: 1px solid var(--border-color, #e0e0e0); border-radius: 6px; min-width: 220px; font-size: 0.95rem; text-transform: uppercase; }
+
+  .summary-cards { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+  .summary-card { flex: 1; min-width: 200px; background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e0e0e0); border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid; }
+  .sc-aut { border-left-color: #1976d2; } .sc-ent { border-left-color: #2e7d32; } .sc-pend { border-left-color: #c62828; }
+  .sc-title { font-size: 0.75rem; font-weight: 700; color: #666; margin-bottom: 5px; } .sc-value { font-size: 1.5rem; font-weight: 800; color: #333; }
+
+  .proc-row-details { display: none; }
+  .proc-row-details.open { display: table-row; background: var(--input-bg, #f9f9f9); }
+  .details-wrapper { padding: 15px; border: 1px solid var(--border-color, #e0e0e0); margin: 0; }
+
+  .st-badge { padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border: 1px solid transparent; }
+  .st-verde { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
+  .st-amarelo { background: #fff3cd; color: #856404; border-color: #ffeeba; }
+  .st-vermelho { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
+  .st-arquivado { background: #eceff1; color: #546e7a; border-color: #cfd8dc; }
+
+  .termos-list { font-size: 0.8rem; margin-top: 10px; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; }
+  .termos-list a { color: #1976d2; text-decoration: underline; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;}
+</style>
+
+<div class="slide fade" id="slide5" style="display: none;">
+  <div class="slide-header" style="padding-bottom: 10px;">
+    <div class="slide-title"><span class="material-icons">assignment</span> SCP - UGTR - SATRE - SEAP | Controle de Processos</div>
+    <input type="text" id="globalSearch" placeholder="Pesquisa geral..." onkeyup="applyAllFilters()">
+  </div>
+
+  <div class="summary-cards">
+    <div class="summary-card sc-aut"><div class="sc-title">TOTAL AUTORIZADO (SELECIONADO)</div><div class="sc-value" id="card-aut">0</div></div>
+    <div class="summary-card sc-ent"><div class="sc-title">TOTAL ENTREGUE (SELECIONADO)</div><div class="sc-value" id="card-ent" style="color: #2e7d32;">0</div></div>
+    <div class="summary-card sc-pend"><div class="sc-title">TOTAL PENDENTE (SELECIONADO)</div><div class="sc-value" id="card-pend" style="color: #c62828;">0</div></div>
+  </div>
+
+  <div class="filters-container">
+    <div class="custom-dropdown" id="dd-n_processo"><button class="drop-btn" onclick="toggleDropdown('n_processo')">N° PROCESSO <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-n_processo"></div></div>
+    <div class="custom-dropdown" id="dd-tipo"><button class="drop-btn" onclick="toggleDropdown('tipo')">TIPO DEMANDA <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-tipo"></div></div>
+    <div class="custom-dropdown" id="dd-orgao"><button class="drop-btn" onclick="toggleDropdown('orgao')">ÓRGÃO <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-orgao"></div></div>
+    <div class="custom-dropdown" id="dd-material"><button class="drop-btn" onclick="toggleDropdown('material')">MATERIAL <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-material"></div></div>
+    <div class="custom-dropdown" id="dd-status"><button class="drop-btn" onclick="toggleDropdown('status')">STATUS <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-status"></div></div>
+    <button onclick="clearAllFilters()" style="padding: 10px 14px; border:none; background:transparent; color:var(--danger, #c62828); cursor:pointer; font-size:0.9rem; font-weight:700;">LIMPAR FILTROS</button>
+  </div>
+
+  <div class="stock-table-container" style="height: calc(100vh - 330px); overflow-y:auto;">
+    <table class="proc-table">
+      <thead>
+        <tr>
+          <th style="width:40px; text-align:center;"><input type="checkbox" id="master-cb-all" onchange="toggleAllProcs(this)" style="width:16px; height:16px; cursor:pointer;" title="Marcar/Desmarcar Todos"></th>
+          <th>Processo</th>
+          <th>Entrada</th>
+          <th>Tipo</th>
+          <th>Órgão</th>
+          <th style="text-align:center">Autorizado</th>
+          <th style="text-align:center">Total Autorizado</th>
+          <th style="text-align:center">Entregue</th>
+          <th style="text-align:center">Faltante</th>
+          <th style="text-align:center">Status</th>
+          <th style="width:30px"></th>
+        </tr>
+      </thead>
+      <tbody id="processosTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  let rawProcessos = []; let currentFiltered = []; let openRows = new Set(); 
+  let activeFilters = { n_processo: [], tipo: [], orgao: [], material: [], status: [] };
+
+  function receiveProcessosData(jsonString) {
+    try {
+      let data = JSON.parse(jsonString);
+      rawProcessos = data.map((p, pIdx) => ({
+        ...p, _uid: 'p_' + pIdx,
+        itens: (p.itens || []).map((i, iIdx) => ({ ...i, _uid: 'i_' + pIdx + '_' + iIdx, _selected: true }))
+      }));
+      applyAllFilters();
+    } catch (e) { console.error("Erro ao processar processos", e); }
+  }
+
+  function formatNumber(num) { const n = parseInt(num); return isNaN(n) ? '0' : n.toLocaleString('pt-BR'); }
+
+  function sortProcessos(data) {
+    const authOrder = { 'SIM': 1, 'N/A': 2, 'NÃO': 3, 'NAO': 3 };
+    const statusOrder = { 'PARCIALMENTE ENTREGUE': 1, 'ENTREGA NÃO INICIADA': 2, 'ENTREGA NAO INICIADA': 2, 'DEMANDA CONCLUÍDA': 3, 'DEMANDA CONCLUIDA': 3, 'ENTREGUE': 3, 'ARQUIVADO': 4 };
+    return data.sort((a, b) => {
+      const authA = authOrder[ (a.autorizado||'').toUpperCase() ] || 99; const authB = authOrder[ (b.autorizado||'').toUpperCase() ] || 99;
+      if (authA !== authB) return authA - authB;
+      const statA = statusOrder[ (a.status||'').toUpperCase() ] || 99; const statB = statusOrder[ (b.status||'').toUpperCase() ] || 99;
+      return statA - statB;
+    });
+  }
+
+  function applyAllFilters() {
+    const globalTerm = document.getElementById('globalSearch').value.toLowerCase(); let filtered = [];
+    rawProcessos.forEach(p => {
+      if (activeFilters.n_processo.length > 0 && !activeFilters.n_processo.includes(p.n_processo)) return;
+      if (activeFilters.tipo.length > 0 && !activeFilters.tipo.includes(p.tipo)) return;
+      if (activeFilters.orgao.length > 0 && !activeFilters.orgao.includes(p.orgao)) return;
+      if (activeFilters.status.length > 0 && !activeFilters.status.includes(p.status)) return;
+
+      let matchedItens = p.itens || [];
+      if (activeFilters.material.length > 0) {
+        matchedItens = matchedItens.filter(i => activeFilters.material.includes(i.material));
+        if (matchedItens.length === 0) return; 
+      }
+      if (globalTerm) {
+        let parentClone = { ...p, itens: [] };
+        if (!JSON.stringify(parentClone).toLowerCase().includes(globalTerm)) {
+          matchedItens = matchedItens.filter(i => JSON.stringify(i).toLowerCase().includes(globalTerm));
+          if (matchedItens.length === 0) return;
+        }
+      }
+      filtered.push({ ...p, itens: matchedItens });
+    });
+    currentFiltered = sortProcessos(filtered); renderTable(currentFiltered);
+  }
+
+ function renderTable(data) {
+    const tbody = document.getElementById('processosTableBody');
+    if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="11" style="padding:20px; text-align:center">NENHUM REGISTRO ENCONTRADO.</td></tr>'; updateSummaryCards(); updateMasterCbAll(); return; }
+
+    let html = '';
+    data.forEach((p) => {
+      let stClass = 'st-arquivado'; let stTxt = (p.status||'').toUpperCase();
+      if (stTxt.includes('PARCIAL')) stClass = 'st-amarelo'; 
+      else if (stTxt.includes('CONCLUÍDA') || stTxt.includes('ENTREGUE')) stClass = 'st-verde'; 
+      else if (stTxt.includes('NÃO INICIADA') || stTxt.includes('NAO INICIADA')) stClass = 'st-vermelho';
+
+      let allItemsChecked = p.itens.length > 0 && p.itens.every(i => i._selected); let isOpen = openRows.has(p._uid);
+      const processDisplayHtml = p.link_sei ? `<a href="${p.link_sei}" target="_blank" onclick="event.stopPropagation();" style="color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Abrir processo no SEI"><span style="text-decoration: underline;">${p.n_processo}</span><span class="material-icons" style="font-size: 14px; text-decoration: none;">open_in_new</span></a>` : p.n_processo;
+
+      let procAutTotal = p.itens.reduce((sum, i) => sum + (Number(i.qtd_aut) || 0), 0);
+      let procEntTotal = p.itens.reduce((sum, i) => sum + (Number(i.qtd_ent) || 0), 0);
+      let procFaltTotal = p.itens.reduce((sum, i) => sum + (Number(i.qtd_falt) || 0), 0);
+
+      let termosHtml = '';
+      if(p.termos && p.termos.length > 0) {
+         termosHtml = `<div class="termos-list"><strong>TERMOS DESTE PROCESSO:</strong><ul style="margin:5px 0; padding-left:20px;">`;
+         p.termos.forEach(t => {
+            let link = t.pdf ? `<a href="${t.pdf}" target="_blank">${t.num} <span class="material-icons" style="font-size:14px">picture_as_pdf</span></a>` : t.num;
+            termosHtml += `<li>${link} - ${t.situacao} (${t.data})</li>`;
+         });
+         termosHtml += `</ul></div>`;
+      }
+
+      html += `
+        <tr class="proc-row-header ${isOpen ? 'active' : ''}" id="pr-${p._uid}">
+          <td class="proc-cell" style="text-align:center" onclick="event.stopPropagation();"><input type="checkbox" class="proc-cb" onchange="toggleProc('${p._uid}', this)" ${allItemsChecked ? 'checked' : ''} style="width:16px; height:16px; cursor:pointer;"></td>
+          <td class="proc-cell" onclick="toggleRow('${p._uid}')" style="font-weight:600; color:var(--accent, #1976d2)">${processDisplayHtml}</td>
+          <td class="proc-cell" onclick="toggleRow('${p._uid}')"><strong>${p.data_entrada}</strong></td>
+          <td class="proc-cell" onclick="toggleRow('${p._uid}')">${p.tipo}</td>
+          <td class="proc-cell" onclick="toggleRow('${p._uid}')">${p.orgao}</td>
+          <td class="proc-cell" onclick="toggleRow('${p._uid}')" style="text-align:center">${p.autorizado}</td>
+          <td class="proc-cell" onclick="toggleRow('${p._uid}')" style="text-align:center; font-weight:bold">${formatNumber(procAutTotal)}</td>
+          <td class="proc-cell" onclick="toggleRow('${p._uid}')" style="text-align:center; color:var(--success, #2e7d32); font-weight:bold">${formatNumber(procEntTotal)}</td>
+          <td class="proc-cell" onclick="toggleRow('${p._uid}')" style="text-align:center; color:var(--danger, #c62828); font-weight:bold">${formatNumber(procFaltTotal)}</td>
+          <td class="proc-cell" onclick="toggleRow('${p._uid}')" style="text-align:center"><span class="st-badge ${stClass}">${p.status}</span></td>
+          <td class="proc-cell" onclick="toggleRow('${p._uid}')" style="text-align:center"><span class="material-icons expand-btn" style="font-size:18px; color:#999">${isOpen ? 'expand_less' : 'expand_more'}</span></td>
+        </tr>
+        <tr class="proc-row-details ${isOpen ? 'open' : ''}" id="pd-${p._uid}">
+          <td colspan="11" style="padding:0;">
+            <div class="details-wrapper">
+               <table style="width:100%; font-size:0.85rem; border-collapse: collapse;">
+                  <thead style="background:#eee; color:#555;">
+                     <tr>
+                        <th style="width:40px; text-align:center;"><input type="checkbox" class="mat-master-cb" onchange="toggleAllMaterials('${p._uid}', this)" ${allItemsChecked ? 'checked' : ''} style="width:14px; height:14px; cursor:pointer;"></th>
+                        <th>Material</th><th>Subgrupo</th><th style="text-align:center">Qtd Aut</th><th style="text-align:center">Entregue</th><th style="text-align:center">Faltante</th><th>Prazo</th><th>Situação</th><th>Obs</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                    ${p.itens.map(i => `
+                      <tr class="mat-row" id="tr-${i._uid}" style="border-bottom:1px solid #eee; transition: opacity 0.2s; opacity: ${i._selected ? '1' : '0.4'};">
+                        <td style="padding:8px; text-align:center;"><input type="checkbox" class="mat-cb" onchange="toggleMaterial('${p._uid}', '${i._uid}', this)" ${i._selected ? 'checked' : ''} style="width:14px; height:14px; cursor:pointer;"></td>
+                        <td style="padding:8px;">${i.material}</td>
+                        <td style="padding:8px;">${i.subgrupo}</td>
+                        <td style="padding:8px; text-align:center; font-weight:bold">${formatNumber(i.qtd_aut)}</td>
+                        <td style="padding:8px; text-align:center; color:green; font-weight:bold">${formatNumber(i.qtd_ent)}</td>
+                        <td style="padding:8px; text-align:center; color:red; font-weight:bold">${formatNumber(i.qtd_falt)}</td>
+                        <td style="padding:8px;">${i.prazo}</td>
+                        <td style="padding:8px;">${i.situacao}</td>
+                        <td style="padding:8px; font-style:italic; color:#777">${i.observacao}</td>
+                      </tr>`).join('')}
+                  </tbody>
+               </table>
+               ${termosHtml}
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = html; updateSummaryCards(); updateMasterCbAll();
+  }
+
+  function updateSummaryCards() {
+    let totalAut = 0, totalEnt = 0, totalPend = 0;
+    currentFiltered.forEach(p => { p.itens.forEach(i => { if (i._selected) { totalAut += Number(i.qtd_aut) || 0; totalEnt += Number(i.qtd_ent) || 0; totalPend += Number(i.qtd_falt) || 0; } }); });
+    document.getElementById('card-aut').textContent = formatNumber(totalAut); document.getElementById('card-ent').textContent = formatNumber(totalEnt); document.getElementById('card-pend').textContent = formatNumber(totalPend);
+  }
+
+  function updateMasterCbAll() {
+    let master = document.getElementById('master-cb-all'); if(!master) return;
+    if(currentFiltered.length === 0) { master.checked = false; return; }
+    master.checked = currentFiltered.every(p => p.itens.every(i => i._selected));
+  }
+
+  function toggleAllProcs(checkbox) {
+    let isChecked = checkbox.checked; currentFiltered.forEach(p => { p.itens.forEach(i => i._selected = isChecked); });
+    document.querySelectorAll('.proc-cb, .mat-master-cb, .mat-cb').forEach(cb => cb.checked = isChecked);
+    document.querySelectorAll('.mat-row').forEach(tr => tr.style.opacity = isChecked ? '1' : '0.4');
+    updateSummaryCards();
+  }
+
+  function toggleProc(procUid, checkbox) {
+    let isChecked = checkbox.checked; let p = currentFiltered.find(x => x._uid === procUid);
+    if(p) { p.itens.forEach(i => i._selected = isChecked); }
+    let detailRow = document.getElementById(`pd-${procUid}`);
+    if(detailRow) { detailRow.querySelectorAll('.mat-cb, .mat-master-cb').forEach(cb => cb.checked = isChecked); detailRow.querySelectorAll('.mat-row').forEach(tr => tr.style.opacity = isChecked ? '1' : '0.4'); }
+    updateMasterCbAll(); updateSummaryCards();
+  }
+
+  function toggleAllMaterials(procUid, checkbox) { let procCb = document.querySelector(`#pr-${procUid} .proc-cb`); if(procCb) procCb.checked = checkbox.checked; toggleProc(procUid, checkbox); }
+
+  function toggleMaterial(procUid, itemUid, checkbox) {
+    let isChecked = checkbox.checked; let p = currentFiltered.find(x => x._uid === procUid);
+    if(p) { let item = p.itens.find(x => x._uid === itemUid); if(item) item._selected = isChecked; let allChecked = p.itens.every(i => i._selected); let procCb = document.querySelector(`#pr-${procUid} .proc-cb`); let matMasterCb = document.querySelector(`#pd-${procUid} .mat-master-cb`); if(procCb) procCb.checked = allChecked; if(matMasterCb) matMasterCb.checked = allChecked; }
+    let matRow = document.getElementById(`tr-${itemUid}`); if(matRow) matRow.style.opacity = isChecked ? '1' : '0.4';
+    updateMasterCbAll(); updateSummaryCards();
+  }
+
+  function toggleRow(uid) {
+    const row = document.getElementById(`pd-${uid}`); const head = document.getElementById(`pr-${uid}`);
+    if (!row) return;
+    if (row.classList.contains('open')) { row.classList.remove('open'); head.classList.remove('active'); head.querySelector('.expand-btn').textContent = 'expand_more'; openRows.delete(uid); } 
+    else { row.classList.add('open'); head.classList.add('active'); head.querySelector('.expand-btn').textContent = 'expand_less'; openRows.add(uid); }
+  }
+
+  function toggleDropdown(key) {
+    document.querySelectorAll('.dropdown-content').forEach(el => { if(el.id !== `content-${key}`) el.classList.remove('show'); });
+    const content = document.getElementById(`content-${key}`);
+    if (!content.classList.contains('show')) { populateDropdownOptions(key); content.classList.add('show'); } else { content.classList.remove('show'); }
+  }
+
+  window.onclick = function(event) { if (!event.target.matches('.drop-btn') && !event.target.closest('.dropdown-content')) { document.querySelectorAll('.dropdown-content').forEach(el => el.classList.remove('show')); } }
+
+  function populateDropdownOptions(key) {
+    const content = document.getElementById(`content-${key}`); content.innerHTML = `<input type="text" class="drop-search" placeholder="BUSCAR..." onkeyup="filterDropdownList(this)">`;
+    let cascadeData = rawProcessos.filter(p => {
+       if (key !== 'n_processo' && activeFilters.n_processo.length > 0 && !activeFilters.n_processo.includes(p.n_processo)) return false;
+       if (key !== 'tipo' && activeFilters.tipo.length > 0 && !activeFilters.tipo.includes(p.tipo)) return false;
+       if (key !== 'orgao' && activeFilters.orgao.length > 0 && !activeFilters.orgao.includes(p.orgao)) return false;
+       if (key !== 'status' && activeFilters.status.length > 0 && !activeFilters.status.includes(p.status)) return false;
+       return true;
+    });
+
+    const uniqueSet = new Set();
+    cascadeData.forEach(p => { if (key === 'material') { if (p.itens && Array.isArray(p.itens)) { p.itens.forEach(i => { if (i.material) uniqueSet.add(i.material.trim()); }); } } else { const val = p[key]; if (val) uniqueSet.add(val.toString().trim()); } });
+
+    const sortedOptions = Array.from(uniqueSet).sort();
+    if (sortedOptions.length === 0) { const div = document.createElement('div'); div.style.padding = "8px"; div.style.color = "#999"; div.style.fontStyle = "italic"; div.innerText = "SEM OPÇÕES"; content.appendChild(div); return; }
+    sortedOptions.forEach(val => {
+      const isChecked = activeFilters[key].includes(val) ? 'checked' : ''; const div = document.createElement('div'); div.className = 'checkbox-item';
+      div.innerHTML = `<label style="width:100%; cursor:pointer; display:flex; align-items:center;"><input type="checkbox" value="${val}" ${isChecked} onchange="updateFilterState('${key}', this)"> <span style="margin-left: 8px;">${val}</span></label>`;
+      content.appendChild(div);
+    });
+  }
+
+  function filterDropdownList(input) { const filter = input.value.toLowerCase(); const items = input.parentElement.getElementsByClassName('checkbox-item'); for (let i = 0; i < items.length; i++) { let txt = items[i].textContent || items[i].innerText; items[i].style.display = txt.toLowerCase().indexOf(filter) > -1 ? "" : "none"; } }
+
+  function updateFilterState(key, checkbox) {
+    const val = checkbox.value; if (checkbox.checked) { activeFilters[key].push(val); } else { activeFilters[key] = activeFilters[key].filter(v => v !== val); }
+    const btn = document.querySelector(`#dd-${key} .drop-btn`); if(activeFilters[key].length > 0) btn.classList.add('active-filter'); else btn.classList.remove('active-filter'); applyAllFilters();
+  }
+
+  function clearAllFilters() { activeFilters = { n_processo: [], tipo: [], orgao: [], material: [], status: [] }; document.querySelectorAll('.drop-btn').forEach(b => b.classList.remove('active-filter')); document.getElementById('globalSearch').value = ''; applyAllFilters(); }
+</script>

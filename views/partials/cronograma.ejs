@@ -1,0 +1,141 @@
+<script src='https://unpkg.com/fullcalendar@6.1.8/index.global.min.js'></script>
+<script src='https://unpkg.com/@fullcalendar/core@6.1.8/locales/pt-br.global.min.js'></script>
+
+<style>
+  #calendar-wrapper { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); height: calc(100vh - 140px); overflow: hidden; border: 1px solid var(--border-color); }
+  .fc { font-family: 'Inter', sans-serif; --fc-border-color: var(--border-color); --fc-today-bg-color: var(--input-bg); }
+  .fc-toolbar-title { font-size: 1.4rem !important; font-weight: 700; color: var(--text-main); }
+  .fc-button { background-color: transparent !important; border: 1px solid var(--border-color) !important; color: var(--text-muted) !important; font-weight: 600 !important; text-transform: uppercase !important; border-radius: 8px !important; box-shadow: none !important; }
+  .fc-button:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
+  .fc-button-active { background-color: var(--accent) !important; border-color: var(--accent) !important; color: white !important; }
+  .fc-col-header-cell-cushion { color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; font-weight: 700; padding: 10px 0 !important; }
+  .fc-daygrid-day-number { color: var(--text-main); font-weight: 600; padding: 8px !important; }
+  .fc-daygrid-event { background: transparent !important; border: none !important; margin-top: 2px !important; cursor: pointer; }
+
+  .custom-event { border-radius: 4px; padding: 4px 6px; font-size: 0.75rem; display: flex; flex-direction: column; overflow: hidden; border-left: 4px solid transparent; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.1s; width: 100%; }
+  .custom-event:hover { transform: scale(1.02); z-index: 5; }
+  .evt-title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .evt-status { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; margin-top: 1px; }
+
+  .ce-pendente { background-color: #FFF3E0; border-left-color: #EF6C00; color: #E65100; }
+  .ce-concluido { background-color: #E8F5E9; border-left-color: #2E7D32; color: #1B5E20; }
+
+  .modal-card { background: var(--card-bg); width: 95%; max-width: 650px; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-color); }
+  .modal-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); }
+  .modal-title { font-weight: 700; color: var(--text-main); font-size: 1.1rem; }
+  .close-btn { cursor: pointer; color: var(--text-muted); } .close-btn:hover { color: var(--danger); }
+  .modal-body { padding: 20px; overflow-y: auto; max-height: 70vh; }
+  .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px; }
+  .info-key { font-weight: 600; color: var(--text-muted); font-size: 0.8rem; } .info-val { font-weight: 700; color: var(--text-main); font-size: 0.9rem; }
+  .modal-table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 0.85rem; }
+  .modal-table th { text-align: left; background: var(--accent); color: white; padding: 8px; }
+  .modal-table td { border-bottom: 1px solid var(--border-color); padding: 8px; color: var(--text-main); }
+</style>
+
+<div class="slide fade" id="slide6" style="display: none;">
+  <div class="slide-header">
+    <div class="slide-title"><span class="material-icons">calendar_month</span> Cronograma de Entregas</div>
+  </div>
+  <div id="calendar-wrapper"><div id="calendar"></div></div>
+</div>
+
+<!-- Modal BLINDADO com display:none direto na tag -->
+<div class="modal-overlay" id="eventModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title" id="mTitle">Detalhes</div>
+      <span class="material-icons close-btn" onclick="closeCronoEventModal()">close</span>
+    </div>
+    <div class="modal-body">
+      <div id="mResumo"></div>
+      <table class="modal-table">
+        <thead><tr><th>Material</th><th>Subgrupo</th><th style="text-align:center">Entregue</th><th style="text-align:center">Faltante</th><th>Situação</th></tr></thead>
+        <tbody id="mTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  let calendarInst; 
+
+  function initCronograma() {
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+
+    if (typeof FullCalendar === 'undefined') {
+        document.getElementById('calendar-wrapper').innerHTML = '<div style="padding: 30px; text-align: center; color: var(--danger); font-weight: 700;">Erro: O Calendário está demorando a responder. Atualize a página.</div>';
+        return;
+    }
+
+    if (calendarInst) { 
+        calendarInst.render(); 
+        updateCalendarEvents(); 
+        return; 
+    }
+
+    calendarInst = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth', locale: 'pt-br',
+      headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listWeek' },
+      height: '100%', dayMaxEvents: 3, events: [], 
+      eventContent: function(arg) {
+        const props = arg.event.extendedProps; const isPend = props.isPendente;
+        const cssClass = isPend ? 'ce-pendente' : 'ce-concluido'; const statusTxt = isPend ? 'PENDENTE' : 'CONCLUÍDO';
+        return { html: `<div class="custom-event ${cssClass}"><div class="evt-title">${arg.event.title}</div><div class="evt-status">${statusTxt} (${formatNumCrono(props.totalFaltante)})</div></div>` };
+      },
+      eventClick: function(info) { openCronoEventModal(info.event); }
+    });
+    
+    calendarInst.render(); 
+    updateCalendarEvents();
+  }
+
+  function updateCalendarEvents() {
+    if (!rawProcessos || rawProcessos.length === 0) return;
+    const events = [];
+    rawProcessos.forEach(proc => {
+      const prazoMap = {};
+      proc.itens.forEach(item => {
+        if (!item.prazo) return;
+        const parts = item.prazo.split('/'); if (parts.length !== 3) return;
+        const isoDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        if (!prazoMap[isoDate]) prazoMap[isoDate] = { falt: 0, itens: [] };
+        prazoMap[isoDate].falt += (parseFloat(item.qtd_falt) || 0);
+        prazoMap[isoDate].itens.push(item);
+      });
+      Object.keys(prazoMap).forEach(date => {
+        const d = prazoMap[date]; const isPend = d.falt > 0;
+        events.push({ title: `${proc.orgao} (${proc.n_processo})`, start: date, extendedProps: { fullProc: proc, itemsDoPrazo: d.itens, totalFaltante: d.falt, isPendente: isPend } });
+      });
+    });
+    if (calendarInst) {
+        calendarInst.removeAllEvents(); 
+        calendarInst.addEventSource(events);
+    }
+  }
+
+  function formatNumCrono(n) { return parseInt(n).toLocaleString('pt-BR'); }
+
+  function openCronoEventModal(evt) {
+    const p = evt.extendedProps; const proc = p.fullProc;
+    document.getElementById('mTitle').innerText = `${proc.orgao} - ${evt.start.toLocaleDateString('pt-BR')}`;
+    
+    const stColor = p.isPendente ? 'var(--warning)' : 'var(--success)';
+    document.getElementById('mResumo').innerHTML = `
+      <div class="info-row"><span class="info-key">Processo:</span> <span class="info-val">${proc.n_processo}</span></div>
+      <div class="info-row"><span class="info-key">Entrada:</span> <span class="info-val">${proc.data_entrada}</span></div>
+      <div class="info-row"><span class="info-key">Tipo:</span> <span class="info-val">${proc.tipo}</span></div>
+      <div class="info-row"><span class="info-key">Total Faltante (Data):</span> <span class="info-val" style="color:${p.isPendente ? 'var(--danger)' : 'var(--text-muted)'}">${formatNumCrono(p.totalFaltante)}</span></div>
+      <div class="info-row"><span class="info-key">Status Entrega:</span> <span class="info-val" style="color:${stColor}">${p.isPendente ? 'PENDENTE' : 'CONCLUÍDO'}</span></div>
+    `;
+
+    let html = '';
+    p.itemsDoPrazo.forEach(i => {
+       html += `<tr><td>${i.material}</td><td>${i.subgrupo}</td><td style="text-align:center; color:var(--success)">${formatNumCrono(i.qtd_ent)}</td><td style="text-align:center; color:var(--danger); font-weight:bold">${formatNumCrono(i.qtd_falt)}</td><td>${i.situacao}</td></tr>`;
+    });
+    document.getElementById('mTbody').innerHTML = html; 
+    document.getElementById('eventModal').style.display = 'flex';
+  }
+
+  function closeCronoEventModal() { document.getElementById('eventModal').style.display = 'none'; }
+</script>

@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+      :root {
+        --bg-color: #f4f7f9; --card-bg: #ffffff; --sidebar-bg: #ffffff;
+        --text-main: #222222; --text-muted: #444444; 
+        --accent: #455a64; --accent-light: #cfd8dc; 
+        --border-color: #cfd8dc; --input-bg: #f0f4f7;
+        --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --success: #1b5e20; --success-bg: #c8e6c9;
+        --warning: #e65100;
+        --danger: #b71c1c; --danger-bg: #ffcdd2;
+        --neutral: #424242; --neutral-bg: #e0e0e0;
+        --table-head-bg: #e2e8ea; --table-row-hover: #fcfdfe;
+        --acc-bg: #fcfdfe; --flash-bg: #eceff1; --flash-border: #90a4ae;
+      }
+
+      body.dark-mode {
+        --bg-color: #121212; --card-bg: #1e272e; --sidebar-bg: #1e272e;
+        --text-main: #ffffff; --text-muted: #cfd8dc;
+        --accent: #b0bec5; --accent-light: #37474f; 
+        --border-color: #455a64; --input-bg: #263238;
+        --shadow: 0 4px 12px rgba(0,0,0,0.5);
+        --success: #a5d6a7; --success-bg: rgba(46, 125, 50, 0.4);
+        --danger: #ef9a9a; --danger-bg: rgba(198, 40, 40, 0.4);
+        --neutral: #eeeeee; --neutral-bg: rgba(117, 117, 117, 0.4);
+        --table-head-bg: #232f34; --table-row-hover: #2c3e50;
+        --acc-bg: #232f34; --flash-bg: #263238; --flash-border: #78909c;
+      }
+
+      * { box-sizing: border-box; }
+      body { font-family: 'Poppins', 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; transition: background-color 0.3s, color 0.3s; height: 100vh; overflow: hidden; display: flex; }
+
+      #loader { position: fixed; inset: 0; background: var(--bg-color); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; }
+      .spinner { width: 60px; height: 60px; border: 5px solid var(--border-color); border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+      .loader-text { font-size: 1.3rem; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      body.loaded #loader { opacity: 0; pointer-events: none; }
+
+      .sidebar { width: 320px; position: fixed; left: 0; top: 0; bottom: 0; background: var(--sidebar-bg); border-right: 2px solid var(--border-color); display: flex; flex-direction: column; align-items: flex-start; padding-top: 25px; gap: 15px; z-index: 1000; box-shadow: 8px 0 20px rgba(0,0,0,0.15); overflow-x: hidden; white-space: nowrap; }
+      .nav-item { width: calc(100% - 30px); margin: 0 15px; height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: flex-start; padding-left: 12px; color: var(--text-muted); cursor: pointer; transition: 0.2s all ease; border: 2px solid transparent; }
+      .nav-item:hover { background: var(--input-bg); color: var(--accent); border-color: var(--border-color); }
+      .nav-item.active { background: var(--accent); color: var(--card-bg); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+      .nav-item .material-icons { font-size: 34px; min-width: 34px; } 
+      .nav-text { margin-left: 20px; font-size: 1.1rem; font-weight: 800; text-transform: uppercase; }
+
+      .main-content { flex: 1; overflow-y: auto; padding: 25px; position: relative; margin-left: 320px; width: calc(100vw - 320px); }
+      .top-bar { background: var(--card-bg); padding: 20px 25px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--shadow); margin-bottom: 25px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; }
+      .title-box h1 { margin: 0; font-size: 1.8rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; } 
+      .date-filters { display: flex; gap: 10px; background: var(--input-bg); padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border-color); } 
+      .date-filters input { border: none; background: transparent; color: var(--text-main); outline: none; cursor: pointer; font-family: inherit; font-size: 1.05rem; font-weight: 600;} 
+      
+      .theme-btn { cursor: pointer; background: transparent; border: 2px solid var(--border-color); padding: 10px; border-radius: 10px; color: var(--text-muted); transition: 0.2s; display:flex; align-items:center; justify-content:center;}
+      .theme-btn:hover { background: var(--input-bg); color: var(--accent); border-color: var(--accent); }
+      .clock-display { font-size: 1.4rem; font-weight: 700; color: var(--accent); background: var(--input-bg); padding: 8px 16px; border-radius: 10px; border: 1px solid var(--border-color); letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
+
+      .slide { display: none; animation: fadeEffect 0.5s ease; }
+      .slide.active { display: block; }
+      @keyframes fadeEffect { from {opacity: 0; transform: translateY(15px);} to {opacity: 1; transform: translateY(0);} }
+
+      .slide-header { background: var(--card-bg); padding: 20px 25px; border-radius: 16px 16px 0 0; border-bottom: 4px solid var(--accent); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:15px; border: 1px solid var(--border-color); border-bottom-width: 4px; box-shadow: var(--shadow); }
+      .slide-title { font-size: 1.5rem; color: var(--text-main); font-weight: 800; display: flex; align-items: center; gap: 12px; text-transform: uppercase; } 
+      .slide-title .material-icons { color: var(--accent); font-size: 30px; }
+
+      .filter-wrapper { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+      .filter-wrapper select, .filter-wrapper input { padding: 12px 14px; background-color: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 10px; min-width: 160px; font-family: inherit; font-size: 1rem; font-weight: 600; outline: none; }
+      select[multiple] { height: 50px; padding: 5px; overflow-y: auto; background-color: var(--input-bg); color: var(--text-main); }
+      
+      .chart-grid { display: grid; gap: 25px; }
+      .grid-2 { grid-template-columns: 2fr 1fr; }
+      .chart-card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+
+      .stock-table-container { height: 500px; overflow-y: auto; width: 100%; }
+      .stock-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
+      .stock-table th { background: var(--table-head-bg); color: var(--text-main); padding: 18px 15px; position: sticky; top: 0; z-index: 1; border-bottom: 2px solid var(--border-color); font-weight: 800; font-size: 0.95rem; text-transform: uppercase; }
+      .stock-table td { padding: 15px; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-size: 0.95rem; font-weight: 500; } 
+      .stock-table tr:hover td { background-color: var(--table-row-hover); }
+      
+      .badge-stock { padding: 6px 14px; border-radius: 20px; font-weight: 800; font-size: 0.95rem; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main); }
+      .status-text { font-weight: 800; font-size: 0.85rem; text-transform: uppercase; padding: 6px 10px; border-radius: 6px; letter-spacing: 0.5px; }
+      .st-ok { color: var(--success); background: var(--success-bg); border: 1px solid #a5d6a7; }
+      .st-bad { color: var(--danger); background: var(--danger-bg); border: 1px solid #ef9a9a; }
+      .st-none { color: var(--text-muted); font-weight: bold; }
+      .bs-pos { background: var(--success-bg); color: var(--success); border: 1px solid #a5d6a7; }
+      .bs-neg { background: var(--danger-bg); color: var(--danger); border: 1px solid #ef9a9a; }
+
+      .origem-badge { display: inline-flex; align-items: center; gap:4px; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; border: 1px solid;}
+      .ob-plan { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
+      .ob-bd { background-color: #cce5ff; color: #004085; border-color: #b8daff; }
+      .subgroup-text { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; display: block; border-top: 1px dashed var(--border-color); padding-top: 4px; margin-top: 4px;}
+
+      .flash-box { background: var(--flash-bg); border: 1px solid var(--border-color); border-left: 5px solid var(--flash-border); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: var(--shadow); }
+      .flash-header { font-weight: 800; font-size: 1.3rem; color: var(--text-main); margin-bottom: 18px; display:flex; align-items:center; gap:10px; text-transform: uppercase; } 
+      .flash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+      
+      .new-card { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; position: relative; }
+      .new-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
+      .new-card-header { padding: 15px 20px; background: var(--accent-light); display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--border-color); }
+      .nc-titles { display: flex; flex-direction: column; }
+      .nc-oficina { font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+      .nc-item { font-weight: 800; color: var(--text-main); font-size: 1.2rem; text-transform: uppercase; } 
+      .nc-internos { font-size: 0.9rem; color: var(--text-main); font-weight: 600; margin-top: 4px; }
+      
+      .nc-pill { padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-left: 10px; border: 1px solid transparent; }
+      .nc-pill.ok { background: var(--success-bg); color: var(--success); border-color: #a5d6a7; }
+      .nc-pill.fail { background: var(--danger-bg); color: var(--danger); border-color: #ef9a9a; }
+      .nc-pill.neutral { background: var(--neutral-bg); color: var(--text-main); border-color: #bdbdbd; }
+
+      .new-card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+      .nc-metrics { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; }
+      .nc-metric-group { display: flex; flex-direction: column; }
+      .nc-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+      .nc-big-val { font-size: 2.2rem; font-weight: 800; color: var(--text-main); line-height: 1.1; } 
+      .nc-sub-val { font-size: 1.1rem; font-weight: 700; color: var(--text-muted); }
+      .nc-perc { font-size: 1rem; font-weight: 800; }
+      .nc-perc.ok { color: var(--success); }
+      .nc-perc.fail { color: var(--danger); }
+
+      .nc-week-list { background: var(--input-bg); padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color); display: flex; flex-wrap: wrap; justify-content: space-between; }
+      .nc-day-col { display: flex; flex-direction: column; align-items: center; min-width: 40px; }
+      .nc-day-name { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; }
+      .nc-day-date { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+      .nc-day-val { font-size: 1rem; font-weight: 800; }
+      
+      .nc-footer { border-top: 2px dashed var(--border-color); padding-top: 12px; margin-top: 5px; }
+      .nc-footer-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+      .nc-footer-label { font-weight: 800; color: var(--text-muted); font-size: 0.8rem; }
+      .nc-footer-val { font-weight: 800; color: var(--text-main); font-size: 1.1rem; }
+
+      .nc-obs-panel { margin-top: 15px; padding: 12px 15px; background-color: var(--danger-bg); border: 2px solid var(--danger); border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: var(--danger); }
+      .nc-obs-panel.bd-info { background-color: #e3f2fd; border-color: #90caf9; color: #0d47a1; }
+
+      .goals-list { display: flex; flex-direction: column; gap: 18px; }
+      .goal-item { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transition: 0.2s; }
+      .goal-head { padding: 18px 25px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); }
+      .goal-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; background: var(--acc-bg); border-top: 2px solid var(--border-color); }
+      .goal-body.open { max-height: 800px; overflow-y: auto; }
+      .goal-row { display: flex; justify-content: space-between; padding: 15px 25px; border-bottom: 1px solid var(--border-color); font-size: 1rem; font-weight: 600;}
+      .gh-title { font-weight: 800; font-size: 1.2rem; text-transform: uppercase; }
+      .gh-badge { background: var(--input-bg); border: 2px solid var(--border-color); padding: 6px 14px; border-radius: 20px; font-size: 0.95rem; font-weight: 800; margin-left: 20px;}
+    </style>
+  </head>
+  <body>
+
+    <div id="loader">
+      <div class="spinner"></div>
+      <div class="loader-text">CARREGANDO DADOS...</div>
+    </div>
+
+    <div class="sidebar">
+      <div class="nav-item active" onclick="currentSlide(1)" title="Diário de Produção"><span class="material-icons">history_edu</span><span class="nav-text">DIÁRIO DE PRODUÇÃO</span></div>
+      <div class="nav-item" onclick="currentSlide(2)" title="Estoque Geral"><span class="material-icons">warehouse</span><span class="nav-text">ESTOQUE GERAL</span></div>
+      <div class="nav-item" onclick="currentSlide(3)" title="Análise do Item"><span class="material-icons">query_stats</span><span class="nav-text">ANÁLISE DO ITEM</span></div>
+      <div class="nav-item" onclick="currentSlide(4)" title="Metas Detalhadas"><span class="material-icons">track_changes</span><span class="nav-text">METAS DETALHADAS</span></div>
+      <div class="nav-item" onclick="currentSlide(5)" title="Controle de Processos"><span class="material-icons">assignment</span><span class="nav-text">PROCESSOS</span></div>
+      <div class="nav-item" onclick="currentSlide(6)" title="Cronograma"><span class="material-icons">calendar_month</span><span class="nav-text">CRONOGRAMA</span></div>
+    </div>
+
+    <div class="main-content">
+      <div class="top-bar">
+        <div class="title-box"><h1>DASHBOARD - SERRALHERIA</h1></div>
+        <div style="display:flex; gap:15px; align-items:center;">
+          <button class="theme-btn" onclick="refreshDashboard()" title="Atualizar Dados" style="font-weight: 700; color: var(--accent);"><span class="material-icons" style="margin-right: 5px;">sync</span> ATUALIZAR</button>
+          <div class="date-filters"><input type="date" id="dateStart" onchange="updateAll()"><input type="date" id="dateEnd" onchange="updateAll()"></div>
+          <div class="clock-display" title="Hora atual"><span class="material-icons" style="font-size:22px;">schedule</span><span id="realtimeClock">--:--:--</span></div>
+          <button class="theme-btn" onclick="toggleTheme()" title="Alternar Modo Noturno"><span class="material-icons" id="themeIcon">dark_mode</span></button>
+        </div>
+      </div>
+
+      <!-- SLIDE 1 -->
+      <div class="slide fade active" id="slide1">
+        <div class="slide-header">
+          <div class="slide-title"><span class="material-icons">history_edu</span> DIÁRIO DE PRODUÇÃO</div>
+          <div class="filter-wrapper">
+             <input type="date" id="filterDateSpecific" onchange="renderSlide1()" title="Selecione um dia específico para ver os cards">
+            <select id="filterObsOficina" onchange="updateSlide1Items()"><option value="Todas">TODAS OFICINAS</option></select>
+            <select id="filterObsItem" multiple size="1" onchange="renderSlide1()" style="min-width: 200px;" title="Segure Ctrl para vários"><option value="Todos" selected>TODOS ITENS</option></select>
+            <input type="text" id="filterObs" placeholder="BUSCAR TEXTO..." onkeyup="renderSlide1()">
+          </div>
+        </div>
+        <div style="font-size:0.85em; font-weight:600; color:var(--text-muted); margin-bottom:15px; margin-left:25px; display:flex; gap:15px; align-items:center;">
+            <span><span class="origem-badge ob-plan">PLANILHA ⚠️</span> = Dados históricos (até 12/06)</span>
+            <span><span class="origem-badge ob-bd">BANCO</span> = Dados do novo sistema</span>
+        </div>
+        <div id="flashReportContainer"></div>
+        <div class="chart-card"><div class="stock-table-container" style="height: 500px;"><table class="stock-table" id="dailyTableBody"></table></div></div>
+      </div>
+
+      <!-- SLIDE 2 -->
+      <div class="slide fade" id="slide2" style="display: none;">
+        <div class="slide-header">
+          <div class="slide-title"><span class="material-icons">warehouse</span> LISTA DE ESTOQUE</div>
+          <div class="filter-wrapper"><select id="selOficina" onchange="renderSlide2()"><option value="Todas">TODAS AS OFICINAS</option></select></div>
+        </div>
+        <div class="chart-grid grid-2">
+          <div class="chart-card"><div class="stock-table-container"><table class="stock-table" id="stockTableBody"></table></div></div>
+          <div class="chart-card" style="padding: 25px;"><div id="chartTitle1" style="text-align:center; margin-bottom:20px; font-weight:800; font-size:1.1rem;">VOLUME NO PERÍODO</div><div id="chart_efficiency" style="height: 400px;"></div></div>
+        </div>
+      </div>
+
+      <!-- SLIDE 3 -->
+      <div class="slide fade" id="slide3" style="display: none;">
+        <div class="slide-header">
+          <div class="slide-title"><span class="material-icons">query_stats</span> ANÁLISE DO ITEM <span id="headerStockBadge" class="header-stock-badge"></span></div>
+          <div class="filter-wrapper"><select id="selItem" onchange="renderSlide3()"><option value="" disabled selected>SELECIONE UM ITEM...</option></select></div>
+        </div>
+        <div id="item-content" style="display:none">
+          <div class="chart-card" style="padding:20px; margin-bottom:25px;"><div id="chart_prod_vs_saida" style="height: 400px;"></div></div>
+          <div class="chart-card" style="padding:20px; margin-bottom:25px;"><div id="chart_fluxo" style="height: 400px;"></div></div>
+          <div class="chart-card" style="padding:20px; margin-bottom:25px;"><div id="chart_evolucao" style="height: 400px;"></div></div>
+        </div>
+        <div id="msg-empty" style="text-align:center; padding: 100px; color:var(--text-muted); opacity:0.8;"><span class="material-icons" style="font-size: 5rem; margin-bottom: 15px;">touch_app</span><h3 style="font-size: 1.5rem; text-transform: uppercase;">SELECIONE UM ITEM NA LISTA ACIMA</h3></div>
+      </div>
+
+      <!-- SLIDE 4 -->
+      <div class="slide fade" id="slide4" style="display: none;">
+        <div class="slide-header"><div class="slide-title"><span class="material-icons">track_changes</span> METAS DETALHADAS</div><div style="font-size:1rem; font-weight: 700; color:var(--text-muted);">CLIQUE PARA EXPANDIR</div></div>
+        <div id="goalsAccordion" class="goals-list" style="padding:15px;"></div>
+      </div>
+
+      <!-- SLIDE 5: PROCESSOS (Renderizado de forma externa) -->
+      <%- include('partials/processos') %>
+      
+      <!-- SLIDE 6: CRONOGRAMA (Renderizado de forma externa) -->
+      <%- include('partials/cronograma') %>
+
+    </div>
+
+    <script>
+      // INJEÇÃO DO DADO ENVIADO PELO NODE.JS
+      const BACKEND_DATA = <%- INITIAL_DATA %>;
+
+      google.charts.load('current', {'packages':['corechart', 'bar']});
+      google.charts.setOnLoadCallback(init);
+
+      let rawData = []; let groupedData = []; let slideIndex = 1; let isDarkMode = false;
+
+      const GOAL_RULES = [
+        { name: "CJ. ALUNO", keywords: ["ALUNO", "CJ ALUNO"], target: 200, type: "day", label: "200/dia" },
+        { name: "LONGARINA", keywords: ["LONGARINA"], target: 75, type: "week", label: "75/sem" }, 
+        { name: "CJ. REFEITÓRIO", keywords: ["REFEITORIO", "REFEITÓRIO"], target: 75, type: "week", label: "75/sem" },
+        { name: "CADEIRA FIXA", keywords: ["CADEIRA FIXA", "CAD. FIXA"], target: 400, type: "week", label: "400/sem" }, 
+        { name: "CJ. PROFESSOR", keywords: ["PROFESSOR"], target: 75, type: "week", label: "75/sem" }, 
+        { name: "CARTEIRA ESCOLAR", keywords: ["CARTEIRA"], target: 300, type: "day", label: "300/dia" },
+        { name: "CADEIRA GIRATÓRIA", keywords: ["GIRATORIA", "GIRATÓRIA"], target: 30, type: "day", label: "30/dia" },
+        { name: "CADEIRA OTELLO", keywords: ["OTELLO"], target: 30, type: "day", label: "30/dia" }
+      ];
+
+      function startClock() { setInterval(() => { document.getElementById('realtimeClock').innerText = new Date().toLocaleTimeString('pt-BR'); }, 1000); document.getElementById('realtimeClock').innerText = new Date().toLocaleTimeString('pt-BR'); }
+      
+      function refreshDashboard() { window.location.href = '/?refresh=true'; }
+
+      function init() {
+        startClock(); 
+        
+        // Lendo dados injetados
+        rawData = BACKEND_DATA.producao || [];
+        rawData.forEach(r => r.dateObj = parseDate(r.data));
+        
+        processGroupedData(); 
+        populateFilters(); 
+        document.body.classList.add('loaded');
+        
+        setTimeout(() => { const l = document.getElementById('loader'); if(l) l.style.display = 'none'; }, 500);
+        updateAll(); 
+
+        // Ativa processos enviando o JSON
+        if(typeof receiveProcessosData === 'function') {
+            receiveProcessosData(JSON.stringify(BACKEND_DATA.processos || []));
+        }
+      }
+
+      function formatSubgroups(subObj) {
+          if (!subObj || typeof subObj !== 'object') return '';
+          const entries = Object.entries(subObj).filter(([k,v]) => Number(v) !== 0);
+          if (entries.length === 0) return '';
+          return entries.map(([k,v]) => `${k}: ${v}`).join(' | ');
+      }
+
+      function sumSubgroups(target, source) {
+          if(!source) return;
+          Object.keys(source).forEach(k => { target[k] = (target[k] || 0) + Number(source[k]); });
+      }
+
+      function normalizeItemName(name) {
+          const upper = name.toUpperCase();
+          if (upper.includes("CADEIRA FIXA EM POLIPROPILENO")) return "CADEIRA FIXA EM POLIPROPILENO";
+          if (upper.includes("CADEIRA GIRATÓRIA ESPALDAR")) return "CADEIRA GIRATÓRIA ESPALDAR";
+          if (upper.includes("CARTEIRA ESCOLAR")) return "CARTEIRA ESCOLAR";
+          if (upper.includes("LONGARINA EM POLIPROPILENO DE 3 LUGARES")) return "LONGARINA EM POLIPROPILENO DE 3 LUGARES";
+          return name;
+      }
+
+      function processGroupedData() {
+          const map = {};
+          rawData.forEach(row => {
+              const normItem = normalizeItemName(row.item);
+              const key = `${row.data}|${row.oficina}|${normItem}`;
+              if (!map[key]) {
+                  map[key] = {
+                      data: row.data, dateObj: row.dateObj, oficina: row.oficina, item: normItem,
+                      internos: 0, producao: 0, saida: 0, producaoDia: 0, estoqueDia: 0, estoqueGeral: row.estoqueGeral, 
+                      observacoes: "", justificativa: "", destino: "", horarios: "", origemTag: row.origem,
+                      subgrupos_producao: {}, subgrupos_saida: {}
+                  };
+              }
+              map[key].producao += row.producao; map[key].saida += row.saida;
+              map[key].producaoDia += row.producaoDia; map[key].estoqueDia += row.estoqueDia; 
+              map[key].internos = Math.max(map[key].internos, row.internos);
+              
+              sumSubgroups(map[key].subgrupos_producao, row.subgrupos_producao);
+              sumSubgroups(map[key].subgrupos_saida, row.subgrupos_saida);
+
+              if (row.origem === "BANCO") map[key].origemTag = "BANCO";
+              if (row.observacoes && row.observacoes.trim() !== "") map[key].observacoes += (map[key].observacoes ? " | " : "") + row.observacoes;
+              if (row.justificativa && row.justificativa.trim() !== "") map[key].justificativa += (map[key].justificativa ? " | " : "") + row.justificativa;
+              if (row.destino && row.destino.trim() !== "") map[key].destino += (map[key].destino ? " | " : "") + row.destino;
+              if (row.horarios && row.horarios.trim() !== "") map[key].horarios += (map[key].horarios ? " | " : "") + row.horarios;
+          });
+          groupedData = Object.values(map);
+      }
+
+      function updateAll() { refreshCurrentSlide(); }
+
+      function toggleTheme() {
+        isDarkMode = !isDarkMode;
+        const body = document.body; const icon = document.getElementById('themeIcon');
+        if (isDarkMode) { body.classList.add('dark-mode'); icon.innerText = 'light_mode'; } else { body.classList.remove('dark-mode'); icon.innerText = 'dark_mode'; }
+        updateAll();
+      }
+
+      function getChartOptions() {
+        const tc = isDarkMode ? '#ffffff' : '#222222'; const gc = isDarkMode ? '#455a64' : '#cfd8dc';
+        return { backgroundColor: { fill: 'transparent' }, titleTextStyle: { color: tc, fontSize: 16, fontName: 'Inter', bold: true }, hAxis: { textStyle: { color: tc, fontName: 'Inter', bold: true }, gridlines: { color: gc }, slantedText: true, slantedTextAngle: 90 }, vAxis: { textStyle: { color: tc, fontName: 'Inter', bold: true }, gridlines: { color: gc } }, legend: { textStyle: { color: tc, fontName: 'Inter', bold: true }, position: 'top' }, annotations: { textStyle: { color: tc, fontSize: 13, fontName: 'Inter', bold: true, auraColor: 'transparent' }, alwaysOutside: true, stem: { color: 'transparent' } } };
+      }
+
+      function currentSlide(n) { 
+          document.getElementById("slide5").style.display = "none";
+          document.getElementById("slide6").style.display = "none";
+          showSlides(slideIndex = n); 
+      }
+      
+      function showSlides(n) {
+        let slides = document.getElementsByClassName("slide"); 
+        let navItems = document.getElementsByClassName("nav-item");
+        if (n > slides.length) slideIndex = 1; 
+        if (n < 1) slideIndex = slides.length;
+        
+        for (let i=0; i<slides.length; i++) { 
+            slides[i].style.display = "none"; 
+            slides[i].classList.remove("active"); 
+            if(navItems[i]) navItems[i].classList.remove("active"); 
+        }
+        
+        const targetSlide = document.getElementById('slide' + slideIndex);
+        if (targetSlide) {
+            targetSlide.style.display = "block";
+            setTimeout(() => targetSlide.classList.add("active"), 10); 
+        }
+        if(navItems[slideIndex-1]) navItems[slideIndex-1].classList.add("active");
+        
+        refreshCurrentSlide();
+      }
+
+      function refreshCurrentSlide() {
+        if (slideIndex === 1) renderSlide1(); if (slideIndex === 2) renderSlide2(); if (slideIndex === 3) renderSlide3(); if (slideIndex === 4) renderSlide4(); 
+        if (slideIndex === 6 && typeof initCronograma === 'function') { setTimeout(() => { initCronograma(); }, 150); }
+      }
+
+      function getFilterDate(id, isEnd) {
+         const val = document.getElementById(id).value; if(!val) return null;
+         const parts = val.split('-'); const d = new Date(parts[0], parts[1]-1, parts[2]);
+         if(isEnd) d.setHours(23, 59, 59, 999); else d.setHours(0,0,0,0); return d;
+      }
+
+      function populateFilters() {
+        const oficinasGroup = [...new Set(groupedData.map(r => r.oficina))].filter(Boolean).sort();
+        const itensGroup = [...new Set(groupedData.map(r => r.item))].filter(Boolean).sort();
+        const selOf = document.getElementById('selOficina'); selOf.innerHTML = '<option value="Todas">TODAS AS OFICINAS</option>';
+        const filterObsOf = document.getElementById('filterObsOficina'); filterObsOf.innerHTML = '<option value="Todas">TODAS OFICINAS</option>';
+        oficinasGroup.forEach(o => { selOf.add(new Option(o.toUpperCase(),o)); filterObsOf.add(new Option(o.toUpperCase(),o)); });
+        const selItem = document.getElementById('selItem'); selItem.innerHTML = '<option value="" disabled selected>SELECIONE UM ITEM...</option>';
+        const filterObsItem = document.getElementById('filterObsItem'); filterObsItem.innerHTML = '<option value="Todos" selected>TODOS ITENS</option>';
+        itensGroup.forEach((i) => { selItem.add(new Option(i.toUpperCase(), i)); filterObsItem.add(new Option(i.toUpperCase(), i)); });
+      }
+
+      function updateSlide1Items() {
+         const oficina = document.getElementById('filterObsOficina').value; const itemSelect = document.getElementById('filterObsItem');
+         itemSelect.innerHTML = '<option value="Todos" selected>TODOS ITENS</option>';
+         const items = [...new Set(groupedData.filter(r => oficina === "Todas" || r.oficina === oficina).map(r => r.item))].sort();
+         items.forEach(i => { itemSelect.add(new Option(i.toUpperCase(), i)); }); renderSlide1();
+      }
+
+      function renderSlide1() {
+        const dStart = getFilterDate('dateStart', false); const dEnd = getFilterDate('dateEnd', true);
+        const filterOf = document.getElementById('filterObsOficina').value; const textFilter = document.getElementById('filterObs').value.toLowerCase();
+        const selItemOptions = document.getElementById('filterObsItem').selectedOptions; const selectedItems = Array.from(selItemOptions).map(o => o.value);
+        const isAllItems = selectedItems.length === 0 || selectedItems.includes('Todos');
+        const specificDateVal = document.getElementById('filterDateSpecific').value;
+        let specificDateStr = ""; if (specificDateVal) { const p = specificDateVal.split('-'); specificDateStr = `${p[2]}/${p[1]}/${p[0]}`; }
+
+        let filtered = groupedData.filter(r => {
+           if(dStart && r.dateObj < dStart) return false; if(dEnd && r.dateObj > dEnd) return false;
+           if(filterOf !== "Todas" && r.oficina !== filterOf) return false; if(!isAllItems && !selectedItems.includes(r.item)) return false;
+           if(textFilter && !JSON.stringify(r).toLowerCase().includes(textFilter)) return false; return true;
+        });
+
+        const weeklyProductionMap = {}; const dayItemTotal = {};
+        groupedData.forEach(r => { const w = getWeekData(r.dateObj); const k = `${r.item}_${w.num}-${r.dateObj.getFullYear()}`; if(!weeklyProductionMap[k]) weeklyProductionMap[k] = 0; weeklyProductionMap[k] += r.producao; });
+        filtered.forEach(r => { const k = r.data + '_' + r.item; if(!dayItemTotal[k]) dayItemTotal[k]=0; dayItemTotal[k]+=r.producao; });
+        filtered.sort((a,b) => b.dateObj - a.dateObj);
+
+        const flashCont = document.getElementById('flashReportContainer');
+        let targetDateStr = specificDateStr || (filtered.length > 0 ? filtered[0].data : "");
+        let displayTitle = specificDateStr ? `RESUMO DO DIA (${targetDateStr})` : `RESUMO DO ÚLTIMO DIA (${targetDateStr})`;
+
+        if (targetDateStr) {
+           const targetDateObj = parseDate(targetDateStr);
+           let sourceData = (specificDateStr ? groupedData : filtered).filter(r => (filterOf === "Todas" || r.oficina === filterOf) && (isAllItems || selectedItems.includes(r.item)));
+           const lastDayData = sourceData.filter(r => r.data === targetDateStr);
+           const weekInfo = getWeekData(targetDateObj); const currWeek = weekInfo.num; const currYear = targetDateObj.getFullYear();
+           const sundayDate = new Date(targetDateObj); sundayDate.setDate(sundayDate.getDate() - sundayDate.getDay()); 
+
+           const dayMap = {}; 
+           lastDayData.forEach(r => { 
+               if(!dayMap[r.item]) dayMap[r.item] = { prod: 0, oficina: r.oficina, internos: 0, obs: "", just: "", origem: r.origemTag, subs_prod: {} }; 
+               dayMap[r.item].prod += r.producao; 
+               sumSubgroups(dayMap[r.item].subs_prod, r.subgrupos_producao);
+               if(r.internos > dayMap[r.item].internos) dayMap[r.item].internos = r.internos;
+               if(r.observacoes) dayMap[r.item].obs += (dayMap[r.item].obs ? " | " : "") + r.observacoes;
+               if(r.justificativa) dayMap[r.item].just += (dayMap[r.item].just ? " | " : "") + r.justificativa;
+           });
+
+           const sortedFlashItems = Object.entries(dayMap).map(([item, obj]) => {
+                const prod = obj.prod; const rule = GOAL_RULES.find(r => r.keywords.some(k => item.toUpperCase().includes(k)));
+                const weeklyRows = groupedData.filter(r => r.item === item && r.oficina === obj.oficina && getWeekData(r.dateObj).num === currWeek && r.dateObj.getFullYear() === currYear);
+                let weekProdMap = {1:0, 2:0, 3:0, 4:0, 5:0}; let totalWeeklyProd = 0;
+                weeklyRows.forEach(r => { let d = r.dateObj.getDay(); if(d >= 1 && d <= 5) { weekProdMap[d] += r.producao; totalWeeklyProd += r.producao; } });
+
+                let weekStringHTML = '';
+                for(let i=1; i<=5; i++) {
+                   let d = new Date(sundayDate); d.setDate(sundayDate.getDate() + i);
+                   let dateStr = d.getDate().toString().padStart(2,'0') + '/' + (d.getMonth()+1).toString().padStart(2,'0');
+                   weekStringHTML += `<div class="nc-day-col"><span class="nc-day-name">${['Seg','Ter','Qua','Qui','Sex'][i-1]}</span><span class="nc-day-date">${dateStr}</span><span class="nc-day-val">${weekProdMap[i]}</span></div>`;
+                }
+                
+                let isSat = false; let metaVal = 0; let metaText = '?'; let statusClass = 'neutral'; let statusText = 'N/I'; let weeklyTarget = 0;
+                if (rule) {
+                    if (rule.type === 'day') { metaVal = rule.target; metaText = `META (DIA): ${rule.target}`; if (prod >= rule.target) isSat = true; weeklyTarget = rule.target * 5; } 
+                    else { const w = getWeekData(targetDateObj); const weekTot = weeklyProductionMap[`${item}_${w.num}-${currYear}`] || 0; metaVal = rule.target; metaText = `META (SEM): ${rule.target}`; if (weekTot >= rule.target) isSat = true; weeklyTarget = rule.target; }
+                    if (isSat) { statusClass = 'ok'; statusText = 'SATISFATÓRIO'; } else { statusClass = 'fail'; statusText = 'INSUFICIENTE'; }
+                } else {
+                   if(prod > 0) { statusClass = 'neutral'; statusText = 'SEM META'; } else { statusClass = 'fail'; statusText = 'ZERADO'; }
+                }
+
+                let percText = '0%'; if(rule && metaVal > 0) percText = Math.round((prod / metaVal) * 100) + '%';
+                let weeklyPercText = '0%'; let weeklyClass = 'neutral';
+                if (weeklyTarget > 0) { let weeklyPerc = Math.round((totalWeeklyProd / weeklyTarget) * 100); weeklyPercText = weeklyPerc + '%'; if(rule){ weeklyClass = weeklyPerc >= 100 ? 'ok' : 'fail'; } }
+                let sortGroup = 5; if (prod > 0) { if (isSat) sortGroup = 1; else if (rule) sortGroup = 2; else sortGroup = 3; } else { if (rule) sortGroup = 4; else sortGroup = 5; }
+
+                return { item, oficina: obj.oficina, internos: obj.internos, prod, subsText: formatSubgroups(obj.subs_prod), sortGroup, metaText, statusClass, statusText, percText, weekStringHTML, totalWeeklyProd, weeklyPercText, weeklyClass, obs: obj.obs, just: obj.just, origem: obj.origem };
+           }).sort((a, b) => a.sortGroup !== b.sortGroup ? a.sortGroup - b.sortGroup : a.item.localeCompare(b.item));
+
+           let itemsHtml = '';
+           sortedFlashItems.forEach((obj) => {
+              let obsBlock = '';
+              if (obj.origem === 'BANCO' && (obj.just || obj.obs)) {
+                 obsBlock = `<div class="nc-obs-panel bd-info"><strong>SISTEMA:</strong> ${obj.just ? obj.just.toUpperCase() : ''} ${obj.obs ? `(${obj.obs.toUpperCase()})` : ''}</div>`;
+              } else if (obj.statusClass === 'fail') {
+                 obsBlock = `<div class="nc-obs-panel"><strong>MOTIVO / OBSERVAÇÕES:</strong> ${obj.obs ? obj.obs.toUpperCase() : "SEM JUSTIFICATIVA REGISTRADA."}</div>`;
+              }
+              let badge = obj.origem === 'PLANILHA' ? `<span class="origem-badge ob-plan" style="position:absolute; right:10px; top:10px;">PLANILHA ⚠️</span>` : ``;
+
+              itemsHtml += `
+                <div class="new-card">
+                   ${badge}
+                   <div class="new-card-header">
+                      <div class="nc-titles"><span class="nc-oficina">${obj.oficina}</span><span class="nc-item">${obj.item}</span><span class="nc-internos">INTERNOS: ${obj.internos}</span></div>
+                      <span class="nc-pill ${obj.statusClass}" style="margin-top: 15px;">${obj.statusText}</span>
+                   </div>
+                   <div class="new-card-body">
+                      <div class="nc-metrics">
+                         <div class="nc-metric-group">
+                             <span class="nc-label">PRODUÇÃO</span>
+                             <span class="nc-big-val">${obj.prod}</span>
+                             ${obj.subsText ? `<span class="subgroup-text">${obj.subsText}</span>` : ''}
+                         </div>
+                         <div class="nc-metric-group" style="text-align:right"><span class="nc-label">META</span><span class="nc-sub-val" style="font-size:1.1rem;">${obj.metaText}</span><span class="nc-perc ${obj.statusClass}">${obj.percText}</span></div>
+                      </div>
+                      <div class="nc-week-list">${obj.weekStringHTML}<div style="width:100%; text-align:right; font-size:0.9rem; border-top:2px solid var(--border-color); margin-top:8px; padding-top:8px;">TOTAL DA SEMANA: <b style="font-size: 1.1rem">${obj.totalWeeklyProd}</b></div></div>
+                      <div class="nc-footer"><div class="nc-footer-row"><span class="nc-footer-label">PERFORMANCE DA SEMANA</span><span class="nc-footer-val ${obj.weeklyClass === 'ok' ? 'nc-perc ok' : 'nc-perc fail'}">${obj.weeklyPercText}</span></div></div>
+                      ${obsBlock}
+                   </div>
+                </div>`;
+           });
+           flashCont.innerHTML = `<div class="flash-box"><div class="flash-header"><span class="material-icons">today</span> ${displayTitle}</div><div class="flash-grid">${itemsHtml}</div></div>`;
+        } else { flashCont.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-main); font-size:1.2rem; font-weight:700;">NENHUM DADO ENCONTRADO PARA OS FILTROS SELECIONADOS.</div>'; }
+
+        let html = `<thead><tr><th>Data</th><th>Oficina</th><th>Item</th><th>Produção</th><th>Meta (Ref)</th><th>Status</th><th>Saída</th><th>Detalhes (Obs / Justificativa / Destino)</th><th>Origem</th></tr></thead><tbody>`;
+        filtered.forEach((r) => {
+           const rule = GOAL_RULES.find(g => g.keywords.some(k => r.item.toUpperCase().includes(k)));
+           let statusBadge = '<span class="status-text st-none">-</span>'; let metaDisplay = '-';
+           if (rule) {
+              if (rule.type === 'day') { const target = rule.target; metaDisplay = `DIA: ${target}`; statusBadge = dayItemTotal[r.data+'_'+r.item] >= target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>'; } 
+              else { const target = rule.target; metaDisplay = `SEM: ${target}`; statusBadge = (weeklyProductionMap[`${r.item}_${getWeekData(r.dateObj).num}-${r.dateObj.getFullYear()}`] || 0) >= target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>'; }
+           }
+           let tagOrigem = r.origemTag === 'PLANILHA' ? `<span class="origem-badge ob-plan">PLANILHA ⚠️</span>` : `<span class="origem-badge ob-bd">BANCO</span>`;
+           let detalhesHtml = `<div class="detalhes-celula">`;
+           if(r.horarios) detalhesHtml += `<strong>Horário:</strong> ${r.horarios}<br>`;
+           if(r.destino) detalhesHtml += `<strong>Destino:</strong> ${r.destino}<br>`;
+           if(r.justificativa) detalhesHtml += `<strong>Just.:</strong> ${r.justificativa}<br>`;
+           if(r.observacoes) detalhesHtml += `<strong>Obs:</strong> ${r.observacoes}`;
+           detalhesHtml += `</div>`;
+           let subP = formatSubgroups(r.subgrupos_producao); let subS = formatSubgroups(r.subgrupos_saida);
+           let prodCell = `<div style="color:var(--accent); font-weight:800; font-size:1.1rem;">${r.producao}</div>` + (subP ? `<span class="subgroup-text" style="border:none; padding:0;">${subP}</span>` : '');
+           let saidaCell = `<div style="color:var(--danger); font-weight:800; font-size:1.1rem;">${r.saida}</div>` + (subS ? `<span class="subgroup-text" style="border:none; padding:0;">${subS}</span>` : '');
+
+           html += `<tr><td><b>${r.data}</b></td><td>${r.oficina.toUpperCase()}</td><td><b>${r.item}</b></td><td>${prodCell}</td><td style="font-size:0.85rem; font-weight:700; color:var(--text-muted)">${metaDisplay}</td><td style="text-align:center;">${statusBadge}</td><td>${saidaCell}</td><td>${detalhesHtml}</td><td style="text-align:center;">${tagOrigem}</td></tr>`;
+        });
+        document.getElementById('dailyTableBody').innerHTML = html || '<tr><td colspan="9" style="text-align:center; padding:20px; font-weight:700;">SEM DADOS</td></tr>';
+      }
+
+      function renderSlide2() {
+        const selOficina = document.getElementById('selOficina').value; const dStart = getFilterDate('dateStart', false); const dEnd = getFilterDate('dateEnd', true);
+        const hasFilter = dStart || dEnd;
+        const filtered = rawData.filter(r => {
+           if (selOficina !== "Todas" && r.oficina !== selOficina) return false;
+           if (dStart && r.dateObj < dStart) return false;
+           if (dEnd && r.dateObj > dEnd) return false;
+           if (!hasFilter && r.origem === 'PLANILHA') return false; 
+           return true;
+        });
+        let minD = null, maxD = null; if(filtered.length > 0) { minD = new Date(Math.min(...filtered.map(r=>r.dateObj))); maxD = new Date(Math.max(...filtered.map(r=>r.dateObj))); }
+        document.getElementById('chartTitle1').innerText = `VOLUME NO PERÍODO: ${(minD && maxD) ? `${fmtDate(minD)} até ${fmtDate(maxD)}` : "SEM DADOS"}`;
+
+        const stockMap = {}, periodMap = {}; const stockSubMap = {}, periodSubPMap = {}, periodSubSMap = {}; let totalProd=0, totalSaida=0;
+        
+        rawData.forEach(r => { 
+           if (selOficina !== "Todas" && r.oficina !== selOficina) return; 
+           if (r.origem === 'PLANILHA') { if (!hasFilter) return; if (dStart && r.dateObj < dStart) return; if (dEnd && r.dateObj > dEnd) return; }
+           if(!stockMap[r.item]) { stockMap[r.item]=0; stockSubMap[r.item]={}; }
+           stockMap[r.item] += (r.producao - r.saida); 
+           sumSubgroups(stockSubMap[r.item], r.subgrupos_producao);
+           if(r.subgrupos_saida) { Object.keys(r.subgrupos_saida).forEach(k => { stockSubMap[r.item][k] = (stockSubMap[r.item][k] || 0) - Number(r.subgrupos_saida[k]); }); }
+        });
+        filtered.forEach(r => { 
+           if(!periodMap[r.item]) { periodMap[r.item]={p:0, s:0}; periodSubPMap[r.item]={}; periodSubSMap[r.item]={}; } 
+           periodMap[r.item].p += r.producao; periodMap[r.item].s += r.saida; totalProd += r.producao; totalSaida += r.saida; 
+           sumSubgroups(periodSubPMap[r.item], r.subgrupos_producao); sumSubgroups(periodSubSMap[r.item], r.subgrupos_saida);
+        });
+
+        const allItems = [...new Set([...Object.keys(periodMap), ...Object.keys(stockMap)])].sort((a,b) => (stockMap[b]||0) - (stockMap[a]||0));
+        let html = `<thead><tr><th>Item</th><th>Entrada (Per)</th><th>Saída (Per)</th><th>Saldo (Per)</th><th>Estoque HOJE</th></tr></thead><tbody>`;
+        allItems.forEach((item, idx) => {
+           const p = periodMap[item] || {p:0, s:0}; const s = stockMap[item] || 0; const saldo = p.p - p.s;
+           let pSubHtml = formatSubgroups(periodSubPMap[item]); let sSubHtml = formatSubgroups(periodSubSMap[item]); let stockSubHtml = formatSubgroups(stockSubMap[item]);
+           html += `<tr><td style="text-transform: uppercase;"><b>${idx+1}. ${item}</b></td><td style="font-weight:700;">${p.p}${pSubHtml?`<span class="subgroup-text" style="border:none; padding:0;">${pSubHtml}</span>`:''}</td><td style="font-weight:700;">${p.s}${sSubHtml?`<span class="subgroup-text" style="border:none; padding:0;">${sSubHtml}</span>`:''}</td><td style="font-weight:800; font-size:1.1rem; color:${saldo>=0?'var(--success)':'var(--danger)'}">${saldo}</td><td><span class="badge-stock ${s >= 0 ? 'bs-pos' : 'bs-neg'}">${s}</span>${stockSubHtml?`<span class="subgroup-text" style="border:none; padding:0;">${stockSubHtml}</span>`:''}</td></tr>`;
+        });
+        document.getElementById('stockTableBody').innerHTML = html;
+        new google.visualization.ColumnChart(document.getElementById('chart_efficiency')).draw(google.visualization.arrayToDataTable([['Tipo','Qtd',{role:'style'},{role:'annotation'}], ['PRODUZIDO',totalProd,'#3498db',totalProd], ['ENTREGUE',totalSaida,'#27ae60',totalSaida]]), {...getChartOptions(), legend:'none'});
+      }
+
+      function renderSlide3() {
+        const itemVal = document.getElementById('selItem').value; const dStart = getFilterDate('dateStart', false); const dEnd = getFilterDate('dateEnd', true);
+        const hasFilter = dStart || dEnd;
+        if (!itemVal) { document.getElementById('item-content').style.display='none'; document.getElementById('msg-empty').style.display='block'; return; }
+        document.getElementById('item-content').style.display='block'; document.getElementById('msg-empty').style.display='none';
+
+        let globalStock = 0; let globalStockSubs = {};
+        groupedData.forEach(r => { 
+           if(r.item === itemVal) {
+               if (r.origemTag === 'PLANILHA') { if (!hasFilter) return; if (dStart && r.dateObj < dStart) return; if (dEnd && r.dateObj > dEnd) return; }
+               globalStock += (r.producao - r.saida); sumSubgroups(globalStockSubs, r.subgrupos_producao);
+               if(r.subgrupos_saida) { Object.keys(r.subgrupos_saida).forEach(k => { globalStockSubs[k] = (globalStockSubs[k] || 0) - Number(r.subgrupos_saida[k]); }); }
+           } 
+        });
+        const hb = document.getElementById('headerStockBadge'); let subText = formatSubgroups(globalStockSubs);
+        hb.innerHTML = `ESTOQUE ATUAL: ${globalStock} ${subText ? `<span style="font-size:0.75rem; font-weight:600; opacity:0.8; margin-left:8px;">(${subText})</span>` : ''}`; 
+        hb.style.display='inline-block';
+
+        const filtered = groupedData.filter(r => r.item === itemVal && (!dStart || r.dateObj>=dStart) && (!dEnd || r.dateObj<=dEnd) && (hasFilter || r.origemTag !== 'PLANILHA'));
+        const rule = GOAL_RULES.find(r => r.keywords.some(k => itemVal.toUpperCase().includes(k)));
+        const baseOpt = getChartOptions(); const comboOpt = { ...baseOpt, title: null, seriesType: 'bars', series: { 0: {color:'#3498db'}, 1: {type:'line', color:'#27ae60', lineWidth:4, lineDashStyle:null}, 2: {color:'#e74c3c'} } };
+
+        if (rule && rule.type === 'week') {
+            const weekMap = {};
+            filtered.forEach(r => { const w = getWeekData(r.dateObj); const k = `${r.dateObj.getFullYear()}-${w.num.toString().padStart(2,'0')}`; if (!weekMap[k]) weekMap[k] = { label: `${w.start} até ${w.end}`, p:0, s:0 }; weekMap[k].p += r.producao; weekMap[k].s += r.saida; });
+            const sortedWeeks = Object.keys(weekMap).sort().map(k => ({...weekMap[k], k}));
+
+            const dt1 = new google.visualization.DataTable(); dt1.addColumn('string','Semana'); dt1.addColumn('number','Produção'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number', `META: ${rule.label}`); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number','Saída'); dt1.addColumn({type:'string',role:'annotation'});
+            sortedWeeks.forEach(x => dt1.addRow([x.label, x.p, x.p.toString(), rule.target, null, x.s, (x.s>0?x.s.toString():null)]));
+            new google.visualization.ComboChart(document.getElementById('chart_prod_vs_saida')).draw(dt1, comboOpt);
+
+            const dt2 = new google.visualization.DataTable(); dt2.addColumn('string','Semana'); dt2.addColumn('number','Saldo'); dt2.addColumn({type:'string',role:'style'}); dt2.addColumn({type:'string',role:'annotation'});
+            sortedWeeks.forEach(x => { let bal = x.p - x.s; dt2.addRow([x.label, bal, bal>=0?'#27ae60':'#c0392b', bal.toString()]); });
+            new google.visualization.ColumnChart(document.getElementById('chart_fluxo')).draw(dt2, {...baseOpt, title:'SALDO DA SEMANA', legend:'none'});
+
+            const dt3 = new google.visualization.DataTable(); dt3.addColumn('string','Data'); dt3.addColumn('number','Estoque (Diário)'); dt3.addColumn({type:'string',role:'annotation'});
+            filtered.sort((a,b)=>a.dateObj - b.dateObj).forEach(x => dt3.addRow([fmtDate(x.dateObj), x.estoqueDia, x.estoqueDia.toString()]));
+            new google.visualization.AreaChart(document.getElementById('chart_evolucao')).draw(dt3, {...baseOpt, title:'EVOLUÇÃO ESTOQUE (DIÁRIA)', legend:'none', colors:['#f39c12']});
+        } else {
+            const dateMap = {};
+            filtered.forEach(r => { if(!dateMap[r.data]) dateMap[r.data] = { dateObj: r.dateObj, p:0, s:0, st:0 }; dateMap[r.data].p += r.producao; dateMap[r.data].s += r.saida; if(r.estoqueDia > dateMap[r.data].st) dateMap[r.data].st = r.estoqueDia; });
+            const sorted = Object.values(dateMap).sort((a,b)=>a.dateObj - b.dateObj);
+
+            const dt1 = new google.visualization.DataTable(); dt1.addColumn('string','Data'); dt1.addColumn('number','Produção'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number', rule ? `META: ${rule.label}` : 'META'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number','Saída'); dt1.addColumn({type:'string',role:'annotation'});
+            sorted.forEach(x => dt1.addRow([fmtDate(x.dateObj), x.p, x.p.toString(), rule ? rule.target : null, null, x.s, (x.s>0?x.s.toString():null)]));
+            new google.visualization.ComboChart(document.getElementById('chart_prod_vs_saida')).draw(dt1, comboOpt);
+
+            const dt2 = new google.visualization.DataTable(); dt2.addColumn('string','Data'); dt2.addColumn('number','Saldo'); dt2.addColumn({type:'string',role:'style'}); dt2.addColumn({type:'string',role:'annotation'});
+            sorted.forEach(x => { let bal = x.p-x.s; dt2.addRow([fmtDate(x.dateObj), bal, bal>=0?'#27ae60':'#c0392b', bal.toString()]); });
+            new google.visualization.ColumnChart(document.getElementById('chart_fluxo')).draw(dt2, {...baseOpt, title:'SALDO DO DIA', legend:'none'});
+
+            const dt3 = new google.visualization.DataTable(); dt3.addColumn('string','Data'); dt3.addColumn('number','Estoque'); dt3.addColumn({type:'string',role:'annotation'});
+            sorted.forEach(x => dt3.addRow([fmtDate(x.dateObj), x.st, x.st.toString()]));
+            new google.visualization.AreaChart(document.getElementById('chart_evolucao')).draw(dt3, {...baseOpt, title:'EVOLUÇÃO ESTOQUE', legend:'none', colors:['#f39c12']});
+        }
+      }
+
+      function renderSlide4() {
+        const dStart = getFilterDate('dateStart', false); const dEnd = getFilterDate('dateEnd', true);
+        const filtered = groupedData.filter(r => (!dStart || r.dateObj>=dStart) && (!dEnd || r.dateObj<=dEnd));
+        const distinctItems = [...new Set(filtered.map(r=>r.item))].sort();
+        let html = ''; let displayCount = 0;
+
+        distinctItems.forEach((item) => {
+           const rule = GOAL_RULES.find(r => r.keywords.some(k => item.toUpperCase().includes(k)));
+           if (!rule) return; displayCount++;
+           const itemData = filtered.filter(r => r.item === item); let details = '';
+
+           if (rule.type === 'day') {
+              const map = {}; itemData.forEach(r => { if(!map[r.data]) map[r.data]=0; map[r.data]+=r.producao; });
+              Object.keys(map).sort((a,b)=>parseDate(b)-parseDate(a)).forEach(d => {
+                 const badge = map[d] >= rule.target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>';
+                 details += `<div class="goal-row"><span class="gr-date">${d}</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">${map[d]} / ${rule.target}</span><span>${badge}</span></div>`;
+              });
+           } else {
+              const map = {};
+              itemData.forEach(r => { const w = getWeekData(r.dateObj); const k = `SEMANA ${w.num} (${w.start} - ${w.end})`; if(!map[k]) map[k]=0; map[k]+=r.producao; });
+              Object.keys(map).sort().reverse().forEach(wk => {
+                 const badge = map[wk] >= rule.target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>';
+                 details += `<div class="goal-row"><span class="gr-date">${wk}</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">${map[wk]} / ${rule.target}</span><span>${badge}</span></div>`;
+              });
+           }
+           html += `<div class="goal-item" id="gi-${displayCount}"><div class="goal-head" onclick="toggleAcc(${displayCount})"><div><span class="gh-title">${item}</span><span class="gh-badge">META: ${rule.label}</span></div><span class="material-icons expand-icon">expand_more</span></div><div class="goal-body" id="gb-${displayCount}">${details}</div></div>`;
+        });
+        document.getElementById('goalsAccordion').innerHTML = html;
+      }
+
+      window.toggleAcc = function(id) { document.getElementById('gb-'+id).classList.toggle('open'); }
+      function getWeekData(d) {
+         const date = new Date(d.getTime()); date.setHours(0,0,0,0); date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+         const week1 = new Date(date.getFullYear(), 0, 4); const weekNum = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+         const curr = new Date(d.getTime()); const day = curr.getDay(); const diff = curr.getDate() - day + (day == 0 ? -6:1);
+         const firstday = new Date(curr.setDate(diff)); const lastday = new Date(curr.setDate(curr.getDate()+4)); 
+         return { num: weekNum, start: fmtDate(firstday), end: fmtDate(lastday) };
+      }
+      function parseDate(str) { if(!str) return new Date(0); const p = str.split('/'); return (p.length === 3) ? new Date(p[2], p[1]-1, p[0]) : new Date(str); }
+      function fmtDate(d) { return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}`; }
+    </script>
+  </body>
+</html>
