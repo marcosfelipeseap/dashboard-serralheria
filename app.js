@@ -9,17 +9,15 @@ dotenv.config();
 const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-const myCache = new NodeCache({ stdTTL: 600 }); // 10 min de cache
+const myCache = new NodeCache({ stdTTL: 600 }); // 10 min de cache na memória
 
 const SUPABASE_URL = 'https://bjmkrtumtuoypnkwvxbh.supabase.co';
-// Coloquei a chave pura aqui pois no Apps Script já estava exposta no front, 
-// mas em um app sério deveríamos puxar de process.env.SUPABASE_KEY
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqbWtydHVtdHVveXBua3d2eGJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MjAzNjMsImV4cCI6MjA4NDM5NjM2M30.DmmapzJz9ed0J7_IQhh1h5q7u-knKSnLi_WGOr-va4s';
 
 const CUTOFF_DATE_PLANILHA_MS = new Date(2026, 5, 12, 23, 59, 59).getTime();
 const CUTOFF_DATE_BANCO_MS = new Date(2026, 5, 12, 0, 0, 0).getTime();
 
-// --- AUTENTICAÇÃO DO GOOGLE ---
+// --- AUTENTICAÇÃO BLINDADA DO GOOGLE ---
 let auth;
 let sheets;
 try {
@@ -229,9 +227,19 @@ async function getProcessosData() {
     return Object.values(processosMap);
 }
 
-// --- ROTAS DO EXPRESS ---
-app.get('/', async (req, res) => {
+// --- ROTAS DO EXPRESS DE ALTA PERFORMANCE ---
+
+// 1. A rota principal entrega APENAS o visual instantaneamente
+app.get('/', (req, res) => {
+    res.render('index');
+});
+
+// 2. A API com Cache na CDN (Edge Cache) do Vercel
+app.get('/api/data', async (req, res) => {
     try {
+        // A MÁGICA: Guarda na CDN por 10 minutos. O primeiro usuário no dia espera, os próximos voam!
+        res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=120');
+
         const forceRefresh = req.query.refresh === 'true';
         let data = myCache.get('SERRALHERIA_DATA');
 
@@ -241,20 +249,11 @@ app.get('/', async (req, res) => {
             data = { producao, processos };
             myCache.set('SERRALHERIA_DATA', data);
         }
-        res.render('index', { INITIAL_DATA: JSON.stringify(data) });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Erro ao carregar o painel da Serralheria: " + err.message);
-    }
-});
-
-app.get('/api/data', async (req, res) => {
-    try {
-        const [producao, processos] = await Promise.all([getProducaoData(), getProcessosData()]);
-        const data = { producao, processos };
-        myCache.set('SERRALHERIA_DATA', data);
         res.json(data);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error(err);
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 if (!process.env.VERCEL) {

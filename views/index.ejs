@@ -14,7 +14,7 @@
         --border-color: #cfd8dc; --input-bg: #f0f4f7;
         --shadow: 0 4px 12px rgba(0,0,0,0.08);
         --success: #1b5e20; --success-bg: #c8e6c9;
-        --warning: #e65100;
+        --warning: #e65100; --warning-bg: #ffe0b2;
         --danger: #b71c1c; --danger-bg: #ffcdd2;
         --neutral: #424242; --neutral-bg: #e0e0e0;
         --table-head-bg: #e2e8ea; --table-row-hover: #fcfdfe;
@@ -28,6 +28,7 @@
         --border-color: #455a64; --input-bg: #263238;
         --shadow: 0 4px 12px rgba(0,0,0,0.5);
         --success: #a5d6a7; --success-bg: rgba(46, 125, 50, 0.4);
+        --warning: #ffb74d; --warning-bg: rgba(255, 152, 0, 0.2);
         --danger: #ef9a9a; --danger-bg: rgba(198, 40, 40, 0.4);
         --neutral: #eeeeee; --neutral-bg: rgba(117, 117, 117, 0.4);
         --table-head-bg: #232f34; --table-row-hover: #2c3e50;
@@ -181,7 +182,7 @@
              <input type="date" id="filterDateSpecific" onchange="renderSlide1()" title="Selecione um dia específico para ver os cards">
             <select id="filterObsOficina" onchange="updateSlide1Items()"><option value="Todas">TODAS OFICINAS</option></select>
             <select id="filterObsItem" multiple size="1" onchange="renderSlide1()" style="min-width: 200px;" title="Segure Ctrl para vários"><option value="Todos" selected>TODOS ITENS</option></select>
-            <input type="text" id="filterObs" placeholder="BUSCAR TEXTO..." onkeyup="renderSlide1()">
+            <input type="text" id="filterObs" placeholder="BUSCAR TEXTO..." onkeyup="debounceSearch()">
           </div>
         </div>
         <div style="font-size:0.85em; font-weight:600; color:var(--text-muted); margin-bottom:15px; margin-left:25px; display:flex; gap:15px; align-items:center;">
@@ -224,20 +225,16 @@
         <div id="goalsAccordion" class="goals-list" style="padding:15px;"></div>
       </div>
 
-      <!-- SLIDE 5: PROCESSOS (Renderizado de forma externa) -->
+      <!-- SLIDE 5 e 6: INCLUDES -->
       <%- include('partials/processos') %>
-      
-      <!-- SLIDE 6: CRONOGRAMA (Renderizado de forma externa) -->
       <%- include('partials/cronograma') %>
 
     </div>
-
     <script>
-      // INJEÇÃO DO DADO ENVIADO PELO NODE.JS
-      const BACKEND_DATA = <%- INITIAL_DATA %>;
+      let BACKEND_DATA = null;
 
       google.charts.load('current', {'packages':['corechart', 'bar']});
-      google.charts.setOnLoadCallback(init);
+      google.charts.setOnLoadCallback(fetchDataAndInit);
 
       let rawData = []; let groupedData = []; let slideIndex = 1; let isDarkMode = false;
 
@@ -256,24 +253,46 @@
       
       function refreshDashboard() { window.location.href = '/?refresh=true'; }
 
-      function init() {
+      // A MÁGICA: Busca dados com alerta visual e limpa o Refresh da URL
+      function fetchDataAndInit() {
         startClock(); 
         
-        // Lendo dados injetados
-        rawData = BACKEND_DATA.producao || [];
-        rawData.forEach(r => r.dateObj = parseDate(r.data));
-        
-        processGroupedData(); 
-        populateFilters(); 
-        document.body.classList.add('loaded');
-        
-        setTimeout(() => { const l = document.getElementById('loader'); if(l) l.style.display = 'none'; }, 500);
-        updateAll(); 
+        const urlParams = new URLSearchParams(window.location.search);
+        const forceRefresh = urlParams.get('refresh') === 'true';
+        const apiEndpoint = forceRefresh ? '/api/data?refresh=true' : '/api/data';
 
-        // Ativa processos enviando o JSON
-        if(typeof receiveProcessosData === 'function') {
-            receiveProcessosData(JSON.stringify(BACKEND_DATA.processos || []));
-        }
+        fetch(apiEndpoint)
+          .then(res => res.json())
+          .then(data => {
+              BACKEND_DATA = data;
+              rawData = BACKEND_DATA.producao || [];
+              rawData.forEach(r => r.dateObj = parseDate(r.data));
+              
+              processGroupedData(); 
+              populateFilters(); 
+              document.body.classList.add('loaded');
+              
+              setTimeout(() => { const l = document.getElementById('loader'); if(l) l.style.display = 'none'; }, 500);
+              updateAll(); 
+
+              if(typeof receiveProcessosData === 'function') {
+                  receiveProcessosData(JSON.stringify(BACKEND_DATA.processos || []));
+              }
+
+              if (forceRefresh) {
+                  window.history.replaceState({}, document.title, "/");
+              }
+          })
+          .catch(err => {
+              console.error(err);
+              document.getElementById('loader').innerHTML = '<div style="color:var(--danger); font-size:20px; font-weight:bold; text-align:center;">ERRO AO CARREGAR DADOS<br><span style="font-size:14px; font-weight:normal;">Atualize a página e tente novamente.</span></div>';
+          });
+      }
+
+      let searchTimeout;
+      function debounceSearch() {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(renderSlide1, 400);
       }
 
       function formatSubgroups(subObj) {
@@ -503,7 +522,12 @@
         } else { flashCont.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-main); font-size:1.2rem; font-weight:700;">NENHUM DADO ENCONTRADO PARA OS FILTROS SELECIONADOS.</div>'; }
 
         let html = `<thead><tr><th>Data</th><th>Oficina</th><th>Item</th><th>Produção</th><th>Meta (Ref)</th><th>Status</th><th>Saída</th><th>Detalhes (Obs / Justificativa / Destino)</th><th>Origem</th></tr></thead><tbody>`;
+        let limit = 150;
+        let rendered = 0;
+
         filtered.forEach((r) => {
+           if (rendered >= limit) return;
+
            const rule = GOAL_RULES.find(g => g.keywords.some(k => r.item.toUpperCase().includes(k)));
            let statusBadge = '<span class="status-text st-none">-</span>'; let metaDisplay = '-';
            if (rule) {
@@ -522,8 +546,16 @@
            let saidaCell = `<div style="color:var(--danger); font-weight:800; font-size:1.1rem;">${r.saida}</div>` + (subS ? `<span class="subgroup-text" style="border:none; padding:0;">${subS}</span>` : '');
 
            html += `<tr><td><b>${r.data}</b></td><td>${r.oficina.toUpperCase()}</td><td><b>${r.item}</b></td><td>${prodCell}</td><td style="font-size:0.85rem; font-weight:700; color:var(--text-muted)">${metaDisplay}</td><td style="text-align:center;">${statusBadge}</td><td>${saidaCell}</td><td>${detalhesHtml}</td><td style="text-align:center;">${tagOrigem}</td></tr>`;
+           rendered++;
         });
-        document.getElementById('dailyTableBody').innerHTML = html || '<tr><td colspan="9" style="text-align:center; padding:20px; font-weight:700;">SEM DADOS</td></tr>';
+
+        if (filtered.length > limit) {
+            html += `<tr><td colspan="9" style="text-align:center; padding:15px; font-weight:700; color: var(--warning); background: var(--warning-bg);">Mostrando ${limit} de ${filtered.length} registros. Use os filtros de data para acessar relatórios antigos.</td></tr>`;
+        } else if (filtered.length === 0) {
+            html += `<tr><td colspan="9" style="text-align:center; padding:20px; font-weight:700;">SEM DADOS</td></tr>`;
+        }
+
+        document.getElementById('dailyTableBody').innerHTML = html;
       }
 
       function renderSlide2() {
