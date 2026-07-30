@@ -227,6 +227,17 @@ async function getProcessosData() {
     return Object.values(processosMap);
 }
 
+// NOVO: Coleta todos os produtos e suas metas do banco de dados (Supabase)
+async function getProdutosDbData() {
+    try {
+        const response = await fetchSupabase('produtos?select=*&limit=5000');
+        return Array.isArray(response) ? response : [];
+    } catch (err) {
+        console.error("Erro Coletando Produtos DB:", err.message);
+        return [];
+    }
+}
+
 // --- ROTAS DO EXPRESS DE ALTA PERFORMANCE ---
 
 // 1. A rota principal entrega APENAS o visual instantaneamente
@@ -245,8 +256,13 @@ app.get('/api/data', async (req, res) => {
 
         if (!data || forceRefresh) {
             console.log("Montando dados híbridos (Sheets + Supabase)...");
-            const [producao, processos] = await Promise.all([getProducaoData(), getProcessosData()]);
-            data = { producao, processos };
+            // Agora mescla a extração completa dos produtos também
+            const [producao, processos, produtosDb] = await Promise.all([
+                getProducaoData(), 
+                getProcessosData(), 
+                getProdutosDbData()
+            ]);
+            data = { producao, processos, produtosDb };
             myCache.set('SERRALHERIA_DATA', data);
         }
         res.json(data);

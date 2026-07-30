@@ -7,23 +7,23 @@
   .proc-row-header.active { background-color: var(--input-bg, #f8f9fa); border-left: 4px solid var(--accent, #1976d2); }
   .proc-cell { padding: 8px 10px; border: 1px solid var(--border-color, #e0e0e0); color: var(--text-main, #333); vertical-align: middle; }
 
-  .filters-container { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; align-items: center; }
-  .custom-dropdown { position: relative; display: inline-block; }
-  .drop-btn { background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e0e0e0); padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 0.95rem; color: var(--text-muted, #666); font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 160px; }
+  .filters-container { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; align-items: center; width: 100%;}
+  .custom-dropdown { position: relative; display: inline-block; flex: 1; min-width: 150px;}
+  .drop-btn { background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e0e0e0); padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 0.95rem; color: var(--text-muted, #666); font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
   .drop-btn:hover { border-color: var(--accent, #1976d2); color: var(--accent, #1976d2); }
   .drop-btn.active-filter { background: var(--accent-light, #e3f2fd); color: var(--text-main, #333); border-color: var(--accent, #1976d2); }
-  .dropdown-content { display: none; position: absolute; top: 110%; left: 0; background-color: var(--card-bg, #fff); min-width: 250px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); z-index: 100; border: 1px solid var(--border-color, #e0e0e0); border-radius: 8px; padding: 10px; max-height: 300px; overflow-y: auto; }
+  .dropdown-content { display: none; position: absolute; top: 110%; left: 0; background-color: var(--card-bg, #fff); min-width: 250px; width: 100%; box-shadow: 0 8px 16px rgba(0,0,0,0.2); z-index: 100; border: 1px solid var(--border-color, #e0e0e0); border-radius: 8px; padding: 10px; max-height: 300px; overflow-y: auto; }
   .dropdown-content.show { display: block; animation: fadeIn 0.2s; }
   .drop-search { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid var(--border-color, #e0e0e0); border-radius: 4px; font-size: 0.9rem; box-sizing: border-box; text-transform: uppercase; }
   .checkbox-item { display: flex; align-items: center; padding: 8px; cursor: pointer; font-size: 0.9rem; color: var(--text-main, #333); border-radius: 4px; }
   .checkbox-item:hover { background-color: var(--input-bg, #f5f5f5); }
   .checkbox-item input { margin-right: 10px; accent-color: var(--accent, #1976d2); width: 16px; height: 16px; }
-  #globalSearch { padding: 10px 16px; border: 1px solid var(--border-color, #e0e0e0); border-radius: 6px; min-width: 220px; font-size: 0.95rem; text-transform: uppercase; }
+  #globalSearch { padding: 10px 16px; border: 1px solid var(--border-color, #e0e0e0); border-radius: 6px; width: 100%; font-size: 0.95rem; text-transform: uppercase; }
 
-  .summary-cards { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
-  .summary-card { flex: 1; min-width: 200px; background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e0e0e0); border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid; }
+  .summary-cards { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; width: 100%;}
+  .summary-card { flex: 1; min-width: 30%; background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e0e0e0); border-radius: 8px; padding: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid; text-align: center;}
   .sc-aut { border-left-color: #1976d2; } .sc-ent { border-left-color: #2e7d32; } .sc-pend { border-left-color: #c62828; }
-  .sc-title { font-size: 0.75rem; font-weight: 700; color: #666; margin-bottom: 5px; } .sc-value { font-size: 1.5rem; font-weight: 800; color: #333; }
+  .sc-title { font-size: 0.6rem; font-weight: 700; color: #666; margin-bottom: 2px; } .sc-value { font-size: 1.3rem; font-weight: 800; color: #333; }
 
   .proc-row-details { display: none; }
   .proc-row-details.open { display: table-row; background: var(--input-bg, #f9f9f9); }
@@ -35,32 +35,87 @@
   .st-vermelho { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
   .st-arquivado { background: #eceff1; color: #546e7a; border-color: #cfd8dc; }
 
-  .termos-list { font-size: 0.8rem; margin-top: 10px; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; }
+  .termos-list { font-size: 0.8rem; margin-top: 10px; padding: 10px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; }
   .termos-list a { color: #1976d2; text-decoration: underline; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;}
+
+  @media (max-width: 1199px) {
+      .stock-table-container { border: none !important; background: transparent; height: auto !important; max-height: none !important;}
+      .proc-table { display: block; width: 100%; border: none !important; }
+      .proc-table thead { display: none; }
+      
+      .proc-row-header {
+          display: block; margin-bottom: 12px; background: var(--card-bg);
+          border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+          padding: 0; width: 100%;
+      }
+      
+      .proc-cell {
+          display: flex; justify-content: space-between; align-items: flex-start; text-align: right;
+          padding: 8px 10px !important; border-bottom: 1px solid var(--border-color) !important; border-top: none;
+          gap: 10px; font-size: 0.8rem; width: 100%; overflow-wrap: anywhere; word-break: break-word;
+      }
+      .proc-cell:last-child { border-bottom: none !important; justify-content: center; background-color: var(--input-bg); border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;}
+      
+      .proc-cell:nth-child(1)::before { content: "Sel."; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+      .proc-cell:nth-child(2)::before { content: "Processo"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+      .proc-cell:nth-child(3)::before { content: "Entrada"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+      .proc-cell:nth-child(4)::before { content: "Tipo"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+      .proc-cell:nth-child(5)::before { content: "Órgão"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+      .proc-cell:nth-child(6)::before { content: "Autorizado"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+      .proc-cell:nth-child(7)::before { content: "Total Autorizado"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+      .proc-cell:nth-child(8)::before { content: "Entregue"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+      .proc-cell:nth-child(9)::before { content: "Faltante"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+      .proc-cell:nth-child(10)::before { content: "Status"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+      
+      .proc-row-details td { display: block !important; padding: 0 !important; border: none !important; }
+      .proc-row-details td::before { display: none !important; }
+      
+      /* Subtabela */
+      .details-wrapper table { display: block; width: 100%; border: none !important; background: transparent; }
+      .details-wrapper table thead { display: none; }
+      .details-wrapper table tbody tr.mat-row {
+          display: block; margin-bottom: 8px; background: var(--bg-color);
+          border: 1px solid var(--border-color); border-radius: 6px; padding: 0; width: 100%;
+      }
+      .details-wrapper table tbody td {
+          display: flex; justify-content: space-between; align-items: center; text-align: right;
+          padding: 6px 10px !important; border-bottom: 1px dashed var(--border-color) !important;
+          font-size: 0.75rem;
+      }
+      .details-wrapper table tbody td:nth-child(1)::before { content: "Sel."; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); }
+      .details-wrapper table tbody td:nth-child(2)::before { content: "Material"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); }
+      .details-wrapper table tbody td:nth-child(3)::before { content: "Subgrupo"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); }
+      .details-wrapper table tbody td:nth-child(4)::before { content: "Qtd Aut"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); }
+      .details-wrapper table tbody td:nth-child(5)::before { content: "Entregue"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); }
+      .details-wrapper table tbody td:nth-child(6)::before { content: "Faltante"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); }
+      .details-wrapper table tbody td:nth-child(7)::before { content: "Prazo"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); }
+      .details-wrapper table tbody td:nth-child(8)::before { content: "Situação"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); }
+      .details-wrapper table tbody td:nth-child(9)::before { content: "Obs"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); }
+  }
 </style>
 
 <div class="slide fade" id="slide5" style="display: none;">
-  <div class="slide-header" style="padding-bottom: 10px;">
-    <div class="slide-title"><span class="material-icons">assignment</span> SCP - UGTR - SATRE - SEAP | Controle de Processos</div>
-    <input type="text" id="globalSearch" placeholder="Pesquisa geral..." onkeyup="applyAllFilters()">
+  <div class="slide-header" style="padding-bottom: 10px; align-items: flex-start;">
+    <div class="slide-title"><span class="material-icons">assignment</span> Controle de Processos</div>
+    <div style="width: 100%; max-width: 400px;"><input type="text" id="globalSearch" placeholder="Pesquisa geral no processo..." onkeyup="applyAllFilters()"></div>
   </div>
 
   <div class="summary-cards">
-    <div class="summary-card sc-aut"><div class="sc-title">TOTAL AUTORIZADO (SELECIONADO)</div><div class="sc-value" id="card-aut">0</div></div>
-    <div class="summary-card sc-ent"><div class="sc-title">TOTAL ENTREGUE (SELECIONADO)</div><div class="sc-value" id="card-ent" style="color: #2e7d32;">0</div></div>
-    <div class="summary-card sc-pend"><div class="sc-title">TOTAL PENDENTE (SELECIONADO)</div><div class="sc-value" id="card-pend" style="color: #c62828;">0</div></div>
+    <div class="summary-card sc-aut"><div class="sc-title">TOTAL AUTORIZADO</div><div class="sc-value" id="card-aut">0</div></div>
+    <div class="summary-card sc-ent"><div class="sc-title">TOTAL ENTREGUE</div><div class="sc-value" id="card-ent" style="color: #2e7d32;">0</div></div>
+    <div class="summary-card sc-pend"><div class="sc-title">TOTAL PENDENTE</div><div class="sc-value" id="card-pend" style="color: #c62828;">0</div></div>
   </div>
 
   <div class="filters-container">
     <div class="custom-dropdown" id="dd-n_processo"><button class="drop-btn" onclick="toggleDropdown('n_processo')">N° PROCESSO <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-n_processo"></div></div>
-    <div class="custom-dropdown" id="dd-tipo"><button class="drop-btn" onclick="toggleDropdown('tipo')">TIPO DEMANDA <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-tipo"></div></div>
+    <div class="custom-dropdown" id="dd-tipo"><button class="drop-btn" onclick="toggleDropdown('tipo')">TIPO <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-tipo"></div></div>
     <div class="custom-dropdown" id="dd-orgao"><button class="drop-btn" onclick="toggleDropdown('orgao')">ÓRGÃO <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-orgao"></div></div>
     <div class="custom-dropdown" id="dd-material"><button class="drop-btn" onclick="toggleDropdown('material')">MATERIAL <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-material"></div></div>
     <div class="custom-dropdown" id="dd-status"><button class="drop-btn" onclick="toggleDropdown('status')">STATUS <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-status"></div></div>
-    <button onclick="clearAllFilters()" style="padding: 10px 14px; border:none; background:transparent; color:var(--danger, #c62828); cursor:pointer; font-size:0.9rem; font-weight:700;">LIMPAR FILTROS</button>
+    <button onclick="clearAllFilters()" style="padding: 10px; border:none; background:var(--danger-bg); border-radius: 6px; color:var(--danger); cursor:pointer; font-size:0.8rem; font-weight:700; width: 100%;">LIMPAR FILTROS</button>
   </div>
 
-  <div class="stock-table-container" style="height: calc(100vh - 330px); overflow-y:auto;">
+  <div class="stock-table-container">
     <table class="proc-table">
       <thead>
         <tr>
@@ -181,7 +236,7 @@
           <td colspan="11" style="padding:0;">
             <div class="details-wrapper">
                <table style="width:100%; font-size:0.85rem; border-collapse: collapse;">
-                  <thead style="background:#eee; color:#555;">
+                  <thead style="background:var(--input-bg); color:var(--text-muted);">
                      <tr>
                         <th style="width:40px; text-align:center;"><input type="checkbox" class="mat-master-cb" onchange="toggleAllMaterials('${p._uid}', this)" ${allItemsChecked ? 'checked' : ''} style="width:14px; height:14px; cursor:pointer;"></th>
                         <th>Material</th><th>Subgrupo</th><th style="text-align:center">Qtd Aut</th><th style="text-align:center">Entregue</th><th style="text-align:center">Faltante</th><th>Prazo</th><th>Situação</th><th>Obs</th>
@@ -189,16 +244,16 @@
                   </thead>
                   <tbody>
                     ${p.itens.map(i => `
-                      <tr class="mat-row" id="tr-${i._uid}" style="border-bottom:1px solid #eee; transition: opacity 0.2s; opacity: ${i._selected ? '1' : '0.4'};">
+                      <tr class="mat-row" id="tr-${i._uid}" style="border-bottom:1px dashed var(--border-color); transition: opacity 0.2s; opacity: ${i._selected ? '1' : '0.4'};">
                         <td style="padding:8px; text-align:center;"><input type="checkbox" class="mat-cb" onchange="toggleMaterial('${p._uid}', '${i._uid}', this)" ${i._selected ? 'checked' : ''} style="width:14px; height:14px; cursor:pointer;"></td>
-                        <td style="padding:8px;">${i.material}</td>
+                        <td style="padding:8px; font-weight:bold">${i.material}</td>
                         <td style="padding:8px;">${i.subgrupo}</td>
                         <td style="padding:8px; text-align:center; font-weight:bold">${formatNumber(i.qtd_aut)}</td>
-                        <td style="padding:8px; text-align:center; color:green; font-weight:bold">${formatNumber(i.qtd_ent)}</td>
-                        <td style="padding:8px; text-align:center; color:red; font-weight:bold">${formatNumber(i.qtd_falt)}</td>
+                        <td style="padding:8px; text-align:center; color:var(--success); font-weight:bold">${formatNumber(i.qtd_ent)}</td>
+                        <td style="padding:8px; text-align:center; color:var(--danger); font-weight:bold">${formatNumber(i.qtd_falt)}</td>
                         <td style="padding:8px;">${i.prazo}</td>
                         <td style="padding:8px;">${i.situacao}</td>
-                        <td style="padding:8px; font-style:italic; color:#777">${i.observacao}</td>
+                        <td style="padding:8px; font-style:italic; color:var(--text-muted)">${i.observacao}</td>
                       </tr>`).join('')}
                   </tbody>
                </table>

@@ -2,6 +2,9 @@
 <html>
   <head>
     <base target="_top">
+    <!-- BLOQUEIO DE ZOOM PARA CELULARES -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -35,8 +38,13 @@
         --acc-bg: #232f34; --flash-bg: #263238; --flash-border: #78909c;
       }
 
+      /* PREVENÇÃO ABSOLUTA DE VAZAMENTO HORIZONTAL */
+      html, body { 
+        background-color: var(--bg-color); color: var(--text-main); 
+        font-family: 'Poppins', 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; 
+        max-width: 100vw; overflow-x: hidden; margin: 0; padding: 0;
+      }
       * { box-sizing: border-box; }
-      body { font-family: 'Poppins', 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; transition: background-color 0.3s, color 0.3s; height: 100vh; overflow: hidden; display: flex; }
 
       #loader { position: fixed; inset: 0; background: var(--bg-color); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; }
       .spinner { width: 60px; height: 60px; border: 5px solid var(--border-color); border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
@@ -44,18 +52,29 @@
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
       body.loaded #loader { opacity: 0; pointer-events: none; }
 
-      .sidebar { width: 320px; position: fixed; left: 0; top: 0; bottom: 0; background: var(--sidebar-bg); border-right: 2px solid var(--border-color); display: flex; flex-direction: column; align-items: flex-start; padding-top: 25px; gap: 15px; z-index: 1000; box-shadow: 8px 0 20px rgba(0,0,0,0.15); overflow-x: hidden; white-space: nowrap; }
+      .layout-wrapper { display: flex; min-height: 100vh; position: relative; width: 100%; max-width: 100vw; overflow-x: hidden; }
+      
+      /* OVERLAY DO MENU MOBILE */
+      .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 90; backdrop-filter: blur(2px); }
+      .sidebar-overlay.show { display: block; }
+
+      .sidebar { width: 320px; position: fixed; left: 0; top: 0; bottom: 0; background: var(--sidebar-bg); border-right: 2px solid var(--border-color); display: flex; flex-direction: column; align-items: flex-start; padding-top: 25px; gap: 15px; z-index: 1000; box-shadow: 8px 0 20px rgba(0,0,0,0.15); overflow-x: hidden; white-space: nowrap; transition: left 0.3s; }
       .nav-item { width: calc(100% - 30px); margin: 0 15px; height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: flex-start; padding-left: 12px; color: var(--text-muted); cursor: pointer; transition: 0.2s all ease; border: 2px solid transparent; }
       .nav-item:hover { background: var(--input-bg); color: var(--accent); border-color: var(--border-color); }
       .nav-item.active { background: var(--accent); color: var(--card-bg); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
       .nav-item .material-icons { font-size: 34px; min-width: 34px; } 
       .nav-text { margin-left: 20px; font-size: 1.1rem; font-weight: 800; text-transform: uppercase; }
 
-      .main-content { flex: 1; overflow-y: auto; padding: 25px; position: relative; margin-left: 320px; width: calc(100vw - 320px); }
+      .main-content { flex: 1; overflow-y: auto; padding: 25px; position: relative; margin-left: 320px; width: calc(100vw - 320px); transition: margin-left 0.3s, width 0.3s; overflow-x: hidden; }
       .top-bar { background: var(--card-bg); padding: 20px 25px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--shadow); margin-bottom: 25px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; }
+      .title-box { display: flex; align-items: center; gap: 10px; }
       .title-box h1 { margin: 0; font-size: 1.8rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; } 
+      
+      /* Botão Mobile Menu */
+      #mobile-menu-btn { display: none; background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+      
       .date-filters { display: flex; gap: 10px; background: var(--input-bg); padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border-color); } 
-      .date-filters input { border: none; background: transparent; color: var(--text-main); outline: none; cursor: pointer; font-family: inherit; font-size: 1.05rem; font-weight: 600;} 
+      .date-filters input { border: none; background: transparent; color: var(--text-main); outline: none; cursor: pointer; font-family: inherit; font-size: 1.05rem; font-weight: 600; width: 130px;} 
       
       .theme-btn { cursor: pointer; background: transparent; border: 2px solid var(--border-color); padding: 10px; border-radius: 10px; color: var(--text-muted); transition: 0.2s; display:flex; align-items:center; justify-content:center;}
       .theme-btn:hover { background: var(--input-bg); color: var(--accent); border-color: var(--accent); }
@@ -69,15 +88,15 @@
       .slide-title { font-size: 1.5rem; color: var(--text-main); font-weight: 800; display: flex; align-items: center; gap: 12px; text-transform: uppercase; } 
       .slide-title .material-icons { color: var(--accent); font-size: 30px; }
 
-      .filter-wrapper { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-      .filter-wrapper select, .filter-wrapper input { padding: 12px 14px; background-color: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 10px; min-width: 160px; font-family: inherit; font-size: 1rem; font-weight: 600; outline: none; }
+      .filter-wrapper { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; width: 100%; justify-content: flex-end;}
+      .filter-wrapper select, .filter-wrapper input { padding: 12px 14px; background-color: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 10px; min-width: 160px; font-family: inherit; font-size: 1rem; font-weight: 600; outline: none; flex: 1; }
       select[multiple] { height: 50px; padding: 5px; overflow-y: auto; background-color: var(--input-bg); color: var(--text-main); }
       
       .chart-grid { display: grid; gap: 25px; }
       .grid-2 { grid-template-columns: 2fr 1fr; }
-      .chart-card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+      .chart-card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; width: 100%;}
 
-      .stock-table-container { height: 500px; overflow-y: auto; width: 100%; }
+      .stock-table-container { height: 500px; overflow-y: auto; width: 100%; overflow-x: auto;}
       .stock-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
       .stock-table th { background: var(--table-head-bg); color: var(--text-main); padding: 18px 15px; position: sticky; top: 0; z-index: 1; border-bottom: 2px solid var(--border-color); font-weight: 800; font-size: 0.95rem; text-transform: uppercase; }
       .stock-table td { padding: 15px; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-size: 0.95rem; font-weight: 500; } 
@@ -145,6 +164,71 @@
       .goal-row { display: flex; justify-content: space-between; padding: 15px 25px; border-bottom: 1px solid var(--border-color); font-size: 1rem; font-weight: 600;}
       .gh-title { font-weight: 800; font-size: 1.2rem; text-transform: uppercase; }
       .gh-badge { background: var(--input-bg); border: 2px solid var(--border-color); padding: 6px 14px; border-radius: 20px; font-size: 0.95rem; font-weight: 800; margin-left: 20px;}
+
+      /* =========================================
+         SUPER COMPACTAÇÃO E ADAPTAÇÃO PARA TABLETS E CELULARES
+         ========================================= */
+      @media (max-width: 1199px) { 
+          /* Sidebar Oculta */
+          .sidebar { left: -320px; }
+          .sidebar.open { left: 0; }
+          .main-content { margin-left: 0; width: 100vw; max-width: 100vw; padding: 10px; }
+
+          #mobile-menu-btn { display: block; }
+          .title-box h1 { font-size: 1.2rem; }
+          .clock-display { display: none; } /* Oculta relógio no mobile */
+          
+          .top-bar { padding: 15px; flex-direction: column; align-items: flex-start; }
+          .top-bar > div:last-child { width: 100%; justify-content: space-between; }
+          .date-filters { flex: 1; justify-content: space-between; }
+          .date-filters input { width: 100%; text-align: center; }
+
+          .slide-header { padding: 15px; }
+          .slide-title { font-size: 1.1rem; }
+          .slide-title .material-icons { font-size: 24px; }
+
+          .chart-grid.grid-2 { grid-template-columns: 1fr; }
+          .flash-grid { grid-template-columns: 1fr; }
+
+          /* TRANSFORMANDO TABELAS EM CARDS */
+          .stock-table-container { border: none !important; background: transparent; height: auto !important; max-height: none !important;}
+          .stock-table { display: block; width: 100%; border: none !important; }
+          .stock-table thead { display: none; }
+          
+          .stock-table tbody tr {
+              display: block; margin-bottom: 12px; background: var(--card-bg);
+              border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+              padding: 0; width: 100%;
+          }
+          
+          .stock-table tbody td {
+              display: flex; justify-content: space-between; align-items: flex-start; text-align: right;
+              padding: 8px 10px !important; border-bottom: 1px solid var(--border-color) !important; border-top: none;
+              gap: 10px; font-size: 0.8rem; width: 100%; overflow-wrap: anywhere; word-break: break-word;
+          }
+          .stock-table tbody td:last-child { border-bottom: none !important; }
+          
+          /* Injeta o nome da coluna no celular para Tabela Slide 1 */
+          #dailyTableBody td:nth-child(1)::before { content: "Data"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+          #dailyTableBody td:nth-child(2)::before { content: "Oficina"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+          #dailyTableBody td:nth-child(3)::before { content: "Item"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+          #dailyTableBody td:nth-child(4)::before { content: "Produção"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+          #dailyTableBody td:nth-child(5)::before { content: "Meta (Ref)"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+          #dailyTableBody td:nth-child(6)::before { content: "Status"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+          #dailyTableBody td:nth-child(7)::before { content: "Saída"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+          #dailyTableBody td:nth-child(8)::before { content: "Detalhes"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+          #dailyTableBody td:nth-child(9)::before { content: "Origem"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+
+          /* Injeta o nome da coluna no celular para Tabela Slide 2 */
+          #stockTableBody td:nth-child(1)::before { content: "Item"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+          #stockTableBody td:nth-child(2)::before { content: "Entrada (Per)"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+          #stockTableBody td:nth-child(3)::before { content: "Saída (Per)"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+          #stockTableBody td:nth-child(4)::before { content: "Saldo (Per)"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+          #stockTableBody td:nth-child(5)::before { content: "Estoque HOJE"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
+
+          .stock-table tbody td > * { flex-shrink: 1; min-width: 0; }
+          .detalhes-celula { text-align: right; }
+      }
     </style>
   </head>
   <body>
@@ -154,82 +238,90 @@
       <div class="loader-text">CARREGANDO DADOS...</div>
     </div>
 
-    <div class="sidebar">
-      <div class="nav-item active" onclick="currentSlide(1)" title="Diário de Produção"><span class="material-icons">history_edu</span><span class="nav-text">DIÁRIO DE PRODUÇÃO</span></div>
-      <div class="nav-item" onclick="currentSlide(2)" title="Estoque Geral"><span class="material-icons">warehouse</span><span class="nav-text">ESTOQUE GERAL</span></div>
-      <div class="nav-item" onclick="currentSlide(3)" title="Análise do Item"><span class="material-icons">query_stats</span><span class="nav-text">ANÁLISE DO ITEM</span></div>
-      <div class="nav-item" onclick="currentSlide(4)" title="Metas Detalhadas"><span class="material-icons">track_changes</span><span class="nav-text">METAS DETALHADAS</span></div>
-      <div class="nav-item" onclick="currentSlide(5)" title="Controle de Processos"><span class="material-icons">assignment</span><span class="nav-text">PROCESSOS</span></div>
-      <div class="nav-item" onclick="currentSlide(6)" title="Cronograma"><span class="material-icons">calendar_month</span><span class="nav-text">CRONOGRAMA</span></div>
-    </div>
-
-    <div class="main-content">
-      <div class="top-bar">
-        <div class="title-box"><h1>DASHBOARD - SERRALHERIA</h1></div>
-        <div style="display:flex; gap:15px; align-items:center;">
-          <button class="theme-btn" onclick="refreshDashboard()" title="Atualizar Dados" style="font-weight: 700; color: var(--accent);"><span class="material-icons" style="margin-right: 5px;">sync</span> ATUALIZAR</button>
-          <div class="date-filters"><input type="date" id="dateStart" onchange="updateAll()"><input type="date" id="dateEnd" onchange="updateAll()"></div>
-          <div class="clock-display" title="Hora atual"><span class="material-icons" style="font-size:22px;">schedule</span><span id="realtimeClock">--:--:--</span></div>
-          <button class="theme-btn" onclick="toggleTheme()" title="Alternar Modo Noturno"><span class="material-icons" id="themeIcon">dark_mode</span></button>
-        </div>
+    <div class="layout-wrapper">
+      <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+      
+      <div class="sidebar" id="sidebar">
+        <div class="nav-item active" onclick="currentSlide(1)" title="Diário de Produção"><span class="material-icons">history_edu</span><span class="nav-text">DIÁRIO</span></div>
+        <div class="nav-item" onclick="currentSlide(2)" title="Estoque Geral"><span class="material-icons">warehouse</span><span class="nav-text">ESTOQUE</span></div>
+        <div class="nav-item" onclick="currentSlide(3)" title="Análise do Item"><span class="material-icons">query_stats</span><span class="nav-text">ANÁLISE</span></div>
+        <div class="nav-item" onclick="currentSlide(4)" title="Metas Detalhadas"><span class="material-icons">track_changes</span><span class="nav-text">METAS</span></div>
+        <div class="nav-item" onclick="currentSlide(5)" title="Controle de Processos"><span class="material-icons">assignment</span><span class="nav-text">PROCESSOS</span></div>
+        <div class="nav-item" onclick="currentSlide(6)" title="Cronograma"><span class="material-icons">calendar_month</span><span class="nav-text">CRONOGRAMA</span></div>
       </div>
 
-      <!-- SLIDE 1 -->
-      <div class="slide fade active" id="slide1">
-        <div class="slide-header">
-          <div class="slide-title"><span class="material-icons">history_edu</span> DIÁRIO DE PRODUÇÃO</div>
-          <div class="filter-wrapper">
-             <input type="date" id="filterDateSpecific" onchange="renderSlide1()" title="Selecione um dia específico para ver os cards">
-            <select id="filterObsOficina" onchange="updateSlide1Items()"><option value="Todas">TODAS OFICINAS</option></select>
-            <select id="filterObsItem" multiple size="1" onchange="renderSlide1()" style="min-width: 200px;" title="Segure Ctrl para vários"><option value="Todos" selected>TODOS ITENS</option></select>
-            <input type="text" id="filterObs" placeholder="BUSCAR TEXTO..." onkeyup="debounceSearch()">
+      <div class="main-content">
+        <div class="top-bar">
+          <div class="title-box">
+            <button id="mobile-menu-btn" onclick="toggleSidebar()"><i class="material-icons">menu</i></button>
+            <h1>DASHBOARD - SERRALHERIA</h1>
+          </div>
+          <div style="display:flex; gap:15px; align-items:center; width: 100%; justify-content: flex-end;">
+            <button class="theme-btn" onclick="refreshDashboard()" title="Atualizar Dados" style="font-weight: 700; color: var(--accent);"><span class="material-icons" style="margin-right: 5px;">sync</span></button>
+            <div class="date-filters"><input type="date" id="dateStart" onchange="updateAll()"><input type="date" id="dateEnd" onchange="updateAll()"></div>
+            <div class="clock-display" title="Hora atual"><span class="material-icons" style="font-size:22px;">schedule</span><span id="realtimeClock">--:--:--</span></div>
+            <button class="theme-btn" onclick="toggleTheme()" title="Alternar Modo Noturno"><span class="material-icons" id="themeIcon">dark_mode</span></button>
           </div>
         </div>
-        <div style="font-size:0.85em; font-weight:600; color:var(--text-muted); margin-bottom:15px; margin-left:25px; display:flex; gap:15px; align-items:center;">
-            <span><span class="origem-badge ob-plan">PLANILHA ⚠️</span> = Dados históricos (até 12/06)</span>
-            <span><span class="origem-badge ob-bd">BANCO</span> = Dados do novo sistema</span>
+
+        <!-- SLIDE 1 -->
+        <div class="slide fade active" id="slide1">
+          <div class="slide-header">
+            <div class="slide-title"><span class="material-icons">history_edu</span> DIÁRIO DE PRODUÇÃO</div>
+            <div class="filter-wrapper">
+               <input type="date" id="filterDateSpecific" onchange="renderSlide1()" title="Selecione um dia específico para ver os cards">
+              <select id="filterObsOficina" onchange="updateSlide1Items()"><option value="Todas">TODAS OFICINAS</option></select>
+              <select id="filterObsItem" multiple size="1" onchange="renderSlide1()" style="min-width: 200px;" title="Segure Ctrl para vários"><option value="Todos" selected>TODOS ITENS</option></select>
+              <input type="text" id="filterObs" placeholder="BUSCAR TEXTO..." onkeyup="debounceSearch()">
+            </div>
+          </div>
+          <div style="font-size:0.85em; font-weight:600; color:var(--text-muted); margin-bottom:15px; margin-left:25px; display:flex; gap:15px; align-items:center;">
+              <span><span class="origem-badge ob-plan">PLANILHA ⚠️</span> = Dados até 12/06</span>
+              <span><span class="origem-badge ob-bd">BANCO</span> = Sistema</span>
+          </div>
+          <div id="flashReportContainer"></div>
+          <div class="chart-card"><div class="stock-table-container"><table class="stock-table" id="dailyTableBody"></table></div></div>
         </div>
-        <div id="flashReportContainer"></div>
-        <div class="chart-card"><div class="stock-table-container" style="height: 500px;"><table class="stock-table" id="dailyTableBody"></table></div></div>
+
+        <!-- SLIDE 2 -->
+        <div class="slide fade" id="slide2" style="display: none;">
+          <div class="slide-header">
+            <div class="slide-title"><span class="material-icons">warehouse</span> LISTA DE ESTOQUE</div>
+            <div class="filter-wrapper"><select id="selOficina" onchange="renderSlide2()"><option value="Todas">TODAS AS OFICINAS</option></select></div>
+          </div>
+          <div class="chart-grid grid-2">
+            <div class="chart-card"><div class="stock-table-container"><table class="stock-table" id="stockTableBody"></table></div></div>
+            <div class="chart-card" style="padding: 25px;"><div id="chartTitle1" style="text-align:center; margin-bottom:20px; font-weight:800; font-size:1.1rem;">VOLUME NO PERÍODO</div><div id="chart_efficiency" style="height: 400px; width: 100%;"></div></div>
+          </div>
+        </div>
+
+        <!-- SLIDE 3 -->
+        <div class="slide fade" id="slide3" style="display: none;">
+          <div class="slide-header">
+            <div class="slide-title"><span class="material-icons">query_stats</span> ANÁLISE DO ITEM <span id="headerStockBadge" class="header-stock-badge"></span></div>
+            <div class="filter-wrapper"><select id="selItem" onchange="renderSlide3()"><option value="" disabled selected>SELECIONE UM ITEM...</option></select></div>
+          </div>
+          <div id="item-content" style="display:none">
+            <div class="chart-card" style="padding:20px; margin-bottom:25px;"><div id="chart_prod_vs_saida" style="height: 400px; width: 100%;"></div></div>
+            <div class="chart-card" style="padding:20px; margin-bottom:25px;"><div id="chart_fluxo" style="height: 400px; width: 100%;"></div></div>
+            <div class="chart-card" style="padding:20px; margin-bottom:25px;"><div id="chart_evolucao" style="height: 400px; width: 100%;"></div></div>
+          </div>
+          <div id="msg-empty" style="text-align:center; padding: 100px 20px; color:var(--text-muted); opacity:0.8;"><span class="material-icons" style="font-size: 5rem; margin-bottom: 15px;">touch_app</span><h3 style="font-size: 1.5rem; text-transform: uppercase;">SELECIONE UM ITEM NA LISTA ACIMA</h3></div>
+        </div>
+
+        <!-- SLIDE 4 -->
+        <div class="slide fade" id="slide4" style="display: none;">
+          <div class="slide-header"><div class="slide-title"><span class="material-icons">track_changes</span> METAS DETALHADAS</div><div style="font-size:1rem; font-weight: 700; color:var(--text-muted);">CLIQUE PARA EXPANDIR</div></div>
+          <div id="goalsAccordion" class="goals-list" style="padding:15px;"></div>
+        </div>
+
+        <!-- SLIDE 5 e 6: INCLUDES -->
+        <%- include('partials/processos') %>
+        <%- include('partials/cronograma') %>
+
       </div>
-
-      <!-- SLIDE 2 -->
-      <div class="slide fade" id="slide2" style="display: none;">
-        <div class="slide-header">
-          <div class="slide-title"><span class="material-icons">warehouse</span> LISTA DE ESTOQUE</div>
-          <div class="filter-wrapper"><select id="selOficina" onchange="renderSlide2()"><option value="Todas">TODAS AS OFICINAS</option></select></div>
-        </div>
-        <div class="chart-grid grid-2">
-          <div class="chart-card"><div class="stock-table-container"><table class="stock-table" id="stockTableBody"></table></div></div>
-          <div class="chart-card" style="padding: 25px;"><div id="chartTitle1" style="text-align:center; margin-bottom:20px; font-weight:800; font-size:1.1rem;">VOLUME NO PERÍODO</div><div id="chart_efficiency" style="height: 400px;"></div></div>
-        </div>
-      </div>
-
-      <!-- SLIDE 3 -->
-      <div class="slide fade" id="slide3" style="display: none;">
-        <div class="slide-header">
-          <div class="slide-title"><span class="material-icons">query_stats</span> ANÁLISE DO ITEM <span id="headerStockBadge" class="header-stock-badge"></span></div>
-          <div class="filter-wrapper"><select id="selItem" onchange="renderSlide3()"><option value="" disabled selected>SELECIONE UM ITEM...</option></select></div>
-        </div>
-        <div id="item-content" style="display:none">
-          <div class="chart-card" style="padding:20px; margin-bottom:25px;"><div id="chart_prod_vs_saida" style="height: 400px;"></div></div>
-          <div class="chart-card" style="padding:20px; margin-bottom:25px;"><div id="chart_fluxo" style="height: 400px;"></div></div>
-          <div class="chart-card" style="padding:20px; margin-bottom:25px;"><div id="chart_evolucao" style="height: 400px;"></div></div>
-        </div>
-        <div id="msg-empty" style="text-align:center; padding: 100px; color:var(--text-muted); opacity:0.8;"><span class="material-icons" style="font-size: 5rem; margin-bottom: 15px;">touch_app</span><h3 style="font-size: 1.5rem; text-transform: uppercase;">SELECIONE UM ITEM NA LISTA ACIMA</h3></div>
-      </div>
-
-      <!-- SLIDE 4 -->
-      <div class="slide fade" id="slide4" style="display: none;">
-        <div class="slide-header"><div class="slide-title"><span class="material-icons">track_changes</span> METAS DETALHADAS</div><div style="font-size:1rem; font-weight: 700; color:var(--text-muted);">CLIQUE PARA EXPANDIR</div></div>
-        <div id="goalsAccordion" class="goals-list" style="padding:15px;"></div>
-      </div>
-
-      <!-- SLIDE 5 e 6: INCLUDES -->
-      <%- include('partials/processos') %>
-      <%- include('partials/cronograma') %>
-
     </div>
+    
     <script>
       let BACKEND_DATA = null;
 
@@ -238,7 +330,8 @@
 
       let rawData = []; let groupedData = []; let slideIndex = 1; let isDarkMode = false;
 
-      const GOAL_RULES = [
+      // Agora dinâmico: as regras padrões serão mescladas com os dados do banco!
+      let GOAL_RULES = [
         { name: "CJ. ALUNO", keywords: ["ALUNO", "CJ ALUNO"], target: 200, type: "day", label: "200/dia" },
         { name: "LONGARINA", keywords: ["LONGARINA"], target: 75, type: "week", label: "75/sem" }, 
         { name: "CJ. REFEITÓRIO", keywords: ["REFEITORIO", "REFEITÓRIO"], target: 75, type: "week", label: "75/sem" },
@@ -249,11 +342,23 @@
         { name: "CADEIRA OTELLO", keywords: ["OTELLO"], target: 30, type: "day", label: "30/dia" }
       ];
 
+      // --- FUNÇÃO PARA ABRIR/FECHAR MENU MOBILE ---
+      window.toggleSidebar = function() {
+          const sb = document.querySelector('.sidebar');
+          const over = document.getElementById('sidebar-overlay');
+          if(sb.classList.contains('open')) {
+              sb.classList.remove('open');
+              over.classList.remove('show');
+          } else {
+              sb.classList.add('open');
+              over.classList.add('show');
+          }
+      }
+
       function startClock() { setInterval(() => { document.getElementById('realtimeClock').innerText = new Date().toLocaleTimeString('pt-BR'); }, 1000); document.getElementById('realtimeClock').innerText = new Date().toLocaleTimeString('pt-BR'); }
       
       function refreshDashboard() { window.location.href = '/?refresh=true'; }
 
-      // A MÁGICA: Busca dados com alerta visual e limpa o Refresh da URL
       function fetchDataAndInit() {
         startClock(); 
         
@@ -268,6 +373,33 @@
               rawData = BACKEND_DATA.producao || [];
               rawData.forEach(r => r.dateObj = parseDate(r.data));
               
+              // === ADICIONA AS METAS DO SUPABASE DINAMICAMENTE ===
+              const dbProds = BACKEND_DATA.produtosDb || [];
+              dbProds.forEach(p => {
+                  if (!p.nome) return;
+                  const nm = p.nome.toUpperCase();
+                  
+                  // Analisa se as metas existem no esquema comum
+                  const targetDia = parseFloat(p.meta_diaria) || parseFloat(p.meta) || 0;
+                  const targetSem = parseFloat(p.meta_semanal) || 0;
+
+                  let target = 0; let type = 'day'; let label = 'SEM META';
+                  
+                  if (targetDia > 0) { target = targetDia; type = 'day'; label = `${target}/dia`; }
+                  else if (targetSem > 0) { target = targetSem; type = 'week'; label = `${target}/sem`; }
+
+                  // Procura se já existe, caso sim: atualiza metas. Se não: adiciona.
+                  const extRule = GOAL_RULES.find(r => r.name === nm || r.keywords.some(k => nm.includes(k)));
+                  if (extRule) {
+                      if (target > 0) { 
+                          extRule.target = target; extRule.type = type; extRule.label = label; 
+                      }
+                  } else {
+                      GOAL_RULES.push({ name: nm, keywords: [nm], target: target, type: type, label: label });
+                  }
+              });
+              // ====================================================
+
               processGroupedData(); 
               populateFilters(); 
               document.body.classList.add('loaded');
@@ -356,7 +488,7 @@
 
       function getChartOptions() {
         const tc = isDarkMode ? '#ffffff' : '#222222'; const gc = isDarkMode ? '#455a64' : '#cfd8dc';
-        return { backgroundColor: { fill: 'transparent' }, titleTextStyle: { color: tc, fontSize: 16, fontName: 'Inter', bold: true }, hAxis: { textStyle: { color: tc, fontName: 'Inter', bold: true }, gridlines: { color: gc }, slantedText: true, slantedTextAngle: 90 }, vAxis: { textStyle: { color: tc, fontName: 'Inter', bold: true }, gridlines: { color: gc } }, legend: { textStyle: { color: tc, fontName: 'Inter', bold: true }, position: 'top' }, annotations: { textStyle: { color: tc, fontSize: 13, fontName: 'Inter', bold: true, auraColor: 'transparent' }, alwaysOutside: true, stem: { color: 'transparent' } } };
+        return { backgroundColor: { fill: 'transparent' }, titleTextStyle: { color: tc, fontSize: 16, fontName: 'Inter', bold: true }, hAxis: { textStyle: { color: tc, fontName: 'Inter', bold: true }, gridlines: { color: gc }, slantedText: true, slantedTextAngle: 90 }, vAxis: { textStyle: { color: tc, fontName: 'Inter', bold: true }, gridlines: { color: gc } }, legend: { textStyle: { color: tc, fontName: 'Inter', bold: true }, position: 'top' }, annotations: { textStyle: { color: tc, fontSize: 13, fontName: 'Inter', bold: true, auraColor: 'transparent' }, alwaysOutside: true, stem: { color: 'transparent' } }, chartArea: {width: '80%', height: '70%'} };
       }
 
       function currentSlide(n) { 
@@ -384,6 +516,12 @@
         }
         if(navItems[slideIndex-1]) navItems[slideIndex-1].classList.add("active");
         
+        // No celular, fecha o menu automaticamente ao clicar na aba
+        if (window.innerWidth <= 1199) {
+            document.querySelector('.sidebar').classList.remove('open');
+            document.getElementById('sidebar-overlay').classList.remove('show');
+        }
+
         refreshCurrentSlide();
       }
 
@@ -400,20 +538,28 @@
 
       function populateFilters() {
         const oficinasGroup = [...new Set(groupedData.map(r => r.oficina))].filter(Boolean).sort();
-        const itensGroup = [...new Set(groupedData.map(r => r.item))].filter(Boolean).sort();
+        // A lista de itens agora é mesclada com a lista dos itens da base de dados (mesmo se não tiverem produção).
+        const itensGroup = [...new Set([
+            ...groupedData.map(r => r.item.toUpperCase()), 
+            ...GOAL_RULES.map(r => r.name.toUpperCase())
+        ])].filter(Boolean).sort();
+        
         const selOf = document.getElementById('selOficina'); selOf.innerHTML = '<option value="Todas">TODAS AS OFICINAS</option>';
         const filterObsOf = document.getElementById('filterObsOficina'); filterObsOf.innerHTML = '<option value="Todas">TODAS OFICINAS</option>';
         oficinasGroup.forEach(o => { selOf.add(new Option(o.toUpperCase(),o)); filterObsOf.add(new Option(o.toUpperCase(),o)); });
         const selItem = document.getElementById('selItem'); selItem.innerHTML = '<option value="" disabled selected>SELECIONE UM ITEM...</option>';
         const filterObsItem = document.getElementById('filterObsItem'); filterObsItem.innerHTML = '<option value="Todos" selected>TODOS ITENS</option>';
-        itensGroup.forEach((i) => { selItem.add(new Option(i.toUpperCase(), i)); filterObsItem.add(new Option(i.toUpperCase(), i)); });
+        itensGroup.forEach((i) => { selItem.add(new Option(i, i)); filterObsItem.add(new Option(i, i)); });
       }
 
       function updateSlide1Items() {
          const oficina = document.getElementById('filterObsOficina').value; const itemSelect = document.getElementById('filterObsItem');
          itemSelect.innerHTML = '<option value="Todos" selected>TODOS ITENS</option>';
-         const items = [...new Set(groupedData.filter(r => oficina === "Todas" || r.oficina === oficina).map(r => r.item))].sort();
-         items.forEach(i => { itemSelect.add(new Option(i.toUpperCase(), i)); }); renderSlide1();
+         const items = [...new Set([
+             ...groupedData.filter(r => oficina === "Todas" || r.oficina === oficina).map(r => r.item.toUpperCase()),
+             ...GOAL_RULES.map(r => r.name.toUpperCase())
+         ])].sort();
+         items.forEach(i => { itemSelect.add(new Option(i, i)); }); renderSlide1();
       }
 
       function renderSlide1() {
@@ -470,18 +616,18 @@
                 }
                 
                 let isSat = false; let metaVal = 0; let metaText = '?'; let statusClass = 'neutral'; let statusText = 'N/I'; let weeklyTarget = 0;
-                if (rule) {
+                if (rule && rule.target > 0) {
                     if (rule.type === 'day') { metaVal = rule.target; metaText = `META (DIA): ${rule.target}`; if (prod >= rule.target) isSat = true; weeklyTarget = rule.target * 5; } 
                     else { const w = getWeekData(targetDateObj); const weekTot = weeklyProductionMap[`${item}_${w.num}-${currYear}`] || 0; metaVal = rule.target; metaText = `META (SEM): ${rule.target}`; if (weekTot >= rule.target) isSat = true; weeklyTarget = rule.target; }
                     if (isSat) { statusClass = 'ok'; statusText = 'SATISFATÓRIO'; } else { statusClass = 'fail'; statusText = 'INSUFICIENTE'; }
                 } else {
-                   if(prod > 0) { statusClass = 'neutral'; statusText = 'SEM META'; } else { statusClass = 'fail'; statusText = 'ZERADO'; }
+                    metaText = 'SEM META'; statusClass = 'neutral'; statusText = 'SEM META';
                 }
 
                 let percText = '0%'; if(rule && metaVal > 0) percText = Math.round((prod / metaVal) * 100) + '%';
                 let weeklyPercText = '0%'; let weeklyClass = 'neutral';
                 if (weeklyTarget > 0) { let weeklyPerc = Math.round((totalWeeklyProd / weeklyTarget) * 100); weeklyPercText = weeklyPerc + '%'; if(rule){ weeklyClass = weeklyPerc >= 100 ? 'ok' : 'fail'; } }
-                let sortGroup = 5; if (prod > 0) { if (isSat) sortGroup = 1; else if (rule) sortGroup = 2; else sortGroup = 3; } else { if (rule) sortGroup = 4; else sortGroup = 5; }
+                let sortGroup = 5; if (prod > 0) { if (isSat) sortGroup = 1; else if (rule && rule.target > 0) sortGroup = 2; else sortGroup = 3; } else { if (rule && rule.target > 0) sortGroup = 4; else sortGroup = 5; }
 
                 return { item, oficina: obj.oficina, internos: obj.internos, prod, subsText: formatSubgroups(obj.subs_prod), sortGroup, metaText, statusClass, statusText, percText, weekStringHTML, totalWeeklyProd, weeklyPercText, weeklyClass, obs: obj.obs, just: obj.just, origem: obj.origem };
            }).sort((a, b) => a.sortGroup !== b.sortGroup ? a.sortGroup - b.sortGroup : a.item.localeCompare(b.item));
@@ -530,10 +676,16 @@
 
            const rule = GOAL_RULES.find(g => g.keywords.some(k => r.item.toUpperCase().includes(k)));
            let statusBadge = '<span class="status-text st-none">-</span>'; let metaDisplay = '-';
+           
            if (rule) {
-              if (rule.type === 'day') { const target = rule.target; metaDisplay = `DIA: ${target}`; statusBadge = dayItemTotal[r.data+'_'+r.item] >= target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>'; } 
-              else { const target = rule.target; metaDisplay = `SEM: ${target}`; statusBadge = (weeklyProductionMap[`${r.item}_${getWeekData(r.dateObj).num}-${r.dateObj.getFullYear()}`] || 0) >= target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>'; }
+              if (rule.target > 0) {
+                  if (rule.type === 'day') { const target = rule.target; metaDisplay = `DIA: ${target}`; statusBadge = dayItemTotal[r.data+'_'+r.item] >= target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>'; } 
+                  else { const target = rule.target; metaDisplay = `SEM: ${target}`; statusBadge = (weeklyProductionMap[`${r.item}_${getWeekData(r.dateObj).num}-${r.dateObj.getFullYear()}`] || 0) >= target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>'; }
+              } else {
+                  metaDisplay = 'SEM META'; statusBadge = '<span class="status-text st-none">-</span>';
+              }
            }
+
            let tagOrigem = r.origemTag === 'PLANILHA' ? `<span class="origem-badge ob-plan">PLANILHA ⚠️</span>` : `<span class="origem-badge ob-bd">BANCO</span>`;
            let detalhesHtml = `<div class="detalhes-celula">`;
            if(r.horarios) detalhesHtml += `<strong>Horário:</strong> ${r.horarios}<br>`;
@@ -545,7 +697,7 @@
            let prodCell = `<div style="color:var(--accent); font-weight:800; font-size:1.1rem;">${r.producao}</div>` + (subP ? `<span class="subgroup-text" style="border:none; padding:0;">${subP}</span>` : '');
            let saidaCell = `<div style="color:var(--danger); font-weight:800; font-size:1.1rem;">${r.saida}</div>` + (subS ? `<span class="subgroup-text" style="border:none; padding:0;">${subS}</span>` : '');
 
-           html += `<tr><td><b>${r.data}</b></td><td>${r.oficina.toUpperCase()}</td><td><b>${r.item}</b></td><td>${prodCell}</td><td style="font-size:0.85rem; font-weight:700; color:var(--text-muted)">${metaDisplay}</td><td style="text-align:center;">${statusBadge}</td><td>${saidaCell}</td><td>${detalhesHtml}</td><td style="text-align:center;">${tagOrigem}</td></tr>`;
+           html += `<tr><td data-label="Data"><b>${r.data}</b></td><td data-label="Oficina">${r.oficina.toUpperCase()}</td><td data-label="Item"><b>${r.item}</b></td><td data-label="Produção">${prodCell}</td><td data-label="Meta" style="font-size:0.85rem; font-weight:700; color:var(--text-muted)">${metaDisplay}</td><td data-label="Status" style="text-align:center;">${statusBadge}</td><td data-label="Saída">${saidaCell}</td><td data-label="Detalhes">${detalhesHtml}</td><td data-label="Origem" style="text-align:center;">${tagOrigem}</td></tr>`;
            rendered++;
         });
 
@@ -592,7 +744,7 @@
         allItems.forEach((item, idx) => {
            const p = periodMap[item] || {p:0, s:0}; const s = stockMap[item] || 0; const saldo = p.p - p.s;
            let pSubHtml = formatSubgroups(periodSubPMap[item]); let sSubHtml = formatSubgroups(periodSubSMap[item]); let stockSubHtml = formatSubgroups(stockSubMap[item]);
-           html += `<tr><td style="text-transform: uppercase;"><b>${idx+1}. ${item}</b></td><td style="font-weight:700;">${p.p}${pSubHtml?`<span class="subgroup-text" style="border:none; padding:0;">${pSubHtml}</span>`:''}</td><td style="font-weight:700;">${p.s}${sSubHtml?`<span class="subgroup-text" style="border:none; padding:0;">${sSubHtml}</span>`:''}</td><td style="font-weight:800; font-size:1.1rem; color:${saldo>=0?'var(--success)':'var(--danger)'}">${saldo}</td><td><span class="badge-stock ${s >= 0 ? 'bs-pos' : 'bs-neg'}">${s}</span>${stockSubHtml?`<span class="subgroup-text" style="border:none; padding:0;">${stockSubHtml}</span>`:''}</td></tr>`;
+           html += `<tr><td data-label="Item" style="text-transform: uppercase;"><b>${idx+1}. ${item}</b></td><td data-label="Entrada (Per)" style="font-weight:700;">${p.p}${pSubHtml?`<span class="subgroup-text" style="border:none; padding:0;">${pSubHtml}</span>`:''}</td><td data-label="Saída (Per)" style="font-weight:700;">${p.s}${sSubHtml?`<span class="subgroup-text" style="border:none; padding:0;">${sSubHtml}</span>`:''}</td><td data-label="Saldo (Per)" style="font-weight:800; font-size:1.1rem; color:${saldo>=0?'var(--success)':'var(--danger)'}">${saldo}</td><td data-label="Estoque HOJE"><span class="badge-stock ${s >= 0 ? 'bs-pos' : 'bs-neg'}">${s}</span>${stockSubHtml?`<span class="subgroup-text" style="border:none; padding:0;">${stockSubHtml}</span>`:''}</td></tr>`;
         });
         document.getElementById('stockTableBody').innerHTML = html;
         new google.visualization.ColumnChart(document.getElementById('chart_efficiency')).draw(google.visualization.arrayToDataTable([['Tipo','Qtd',{role:'style'},{role:'annotation'}], ['PRODUZIDO',totalProd,'#3498db',totalProd], ['ENTREGUE',totalSaida,'#27ae60',totalSaida]]), {...getChartOptions(), legend:'none'});
@@ -626,7 +778,7 @@
             const sortedWeeks = Object.keys(weekMap).sort().map(k => ({...weekMap[k], k}));
 
             const dt1 = new google.visualization.DataTable(); dt1.addColumn('string','Semana'); dt1.addColumn('number','Produção'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number', `META: ${rule.label}`); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number','Saída'); dt1.addColumn({type:'string',role:'annotation'});
-            sortedWeeks.forEach(x => dt1.addRow([x.label, x.p, x.p.toString(), rule.target, null, x.s, (x.s>0?x.s.toString():null)]));
+            sortedWeeks.forEach(x => dt1.addRow([x.label, x.p, x.p.toString(), rule.target > 0 ? rule.target : null, null, x.s, (x.s>0?x.s.toString():null)]));
             new google.visualization.ComboChart(document.getElementById('chart_prod_vs_saida')).draw(dt1, comboOpt);
 
             const dt2 = new google.visualization.DataTable(); dt2.addColumn('string','Semana'); dt2.addColumn('number','Saldo'); dt2.addColumn({type:'string',role:'style'}); dt2.addColumn({type:'string',role:'annotation'});
@@ -641,8 +793,8 @@
             filtered.forEach(r => { if(!dateMap[r.data]) dateMap[r.data] = { dateObj: r.dateObj, p:0, s:0, st:0 }; dateMap[r.data].p += r.producao; dateMap[r.data].s += r.saida; if(r.estoqueDia > dateMap[r.data].st) dateMap[r.data].st = r.estoqueDia; });
             const sorted = Object.values(dateMap).sort((a,b)=>a.dateObj - b.dateObj);
 
-            const dt1 = new google.visualization.DataTable(); dt1.addColumn('string','Data'); dt1.addColumn('number','Produção'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number', rule ? `META: ${rule.label}` : 'META'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number','Saída'); dt1.addColumn({type:'string',role:'annotation'});
-            sorted.forEach(x => dt1.addRow([fmtDate(x.dateObj), x.p, x.p.toString(), rule ? rule.target : null, null, x.s, (x.s>0?x.s.toString():null)]));
+            const dt1 = new google.visualization.DataTable(); dt1.addColumn('string','Data'); dt1.addColumn('number','Produção'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number', rule && rule.target > 0 ? `META: ${rule.label}` : 'META'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number','Saída'); dt1.addColumn({type:'string',role:'annotation'});
+            sorted.forEach(x => dt1.addRow([fmtDate(x.dateObj), x.p, x.p.toString(), rule && rule.target > 0 ? rule.target : null, null, x.s, (x.s>0?x.s.toString():null)]));
             new google.visualization.ComboChart(document.getElementById('chart_prod_vs_saida')).draw(dt1, comboOpt);
 
             const dt2 = new google.visualization.DataTable(); dt2.addColumn('string','Data'); dt2.addColumn('number','Saldo'); dt2.addColumn({type:'string',role:'style'}); dt2.addColumn({type:'string',role:'annotation'});
@@ -658,29 +810,53 @@
       function renderSlide4() {
         const dStart = getFilterDate('dateStart', false); const dEnd = getFilterDate('dateEnd', true);
         const filtered = groupedData.filter(r => (!dStart || r.dateObj>=dStart) && (!dEnd || r.dateObj<=dEnd));
-        const distinctItems = [...new Set(filtered.map(r=>r.item))].sort();
+        
+        // Agora todos os itens exclusivos do banco, mesmo os que não tenham tido produção no dia/semana, entram na listagem.
+        const distinctItems = [...new Set([
+            ...filtered.map(r => r.item.toUpperCase()),
+            ...GOAL_RULES.map(r => r.name.toUpperCase())
+        ])].sort();
+
         let html = ''; let displayCount = 0;
 
         distinctItems.forEach((item) => {
-           const rule = GOAL_RULES.find(r => r.keywords.some(k => item.toUpperCase().includes(k)));
-           if (!rule) return; displayCount++;
-           const itemData = filtered.filter(r => r.item === item); let details = '';
+           const rule = GOAL_RULES.find(r => r.keywords.some(k => item.includes(k)));
+           if (!rule) return; 
+           
+           displayCount++;
+           const itemData = filtered.filter(r => rule.keywords.some(k => r.item.toUpperCase().includes(k)));
+           let details = '';
 
            if (rule.type === 'day') {
               const map = {}; itemData.forEach(r => { if(!map[r.data]) map[r.data]=0; map[r.data]+=r.producao; });
-              Object.keys(map).sort((a,b)=>parseDate(b)-parseDate(a)).forEach(d => {
-                 const badge = map[d] >= rule.target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>';
-                 details += `<div class="goal-row"><span class="gr-date">${d}</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">${map[d]} / ${rule.target}</span><span>${badge}</span></div>`;
-              });
+              const dates = Object.keys(map).sort((a,b)=>parseDate(b)-parseDate(a));
+              
+              if (dates.length > 0) {
+                  dates.forEach(d => {
+                     const badge = rule.target > 0 ? (map[d] >= rule.target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>') : '<span class="status-text st-none">SEM META</span>';
+                     const disp = rule.target > 0 ? ` / ${rule.target}` : '';
+                     details += `<div class="goal-row"><span class="gr-date">${d}</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">${map[d]}${disp}</span><span>${badge}</span></div>`;
+                  });
+              } else {
+                  // Se o produto está no DB e é gerado via accordion, mostra 0 na semana/dia que não tiver produção
+                  details += `<div class="goal-row"><span class="gr-date">PERÍODO SELECIONADO</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">0${rule.target > 0 ? ' / ' + rule.target : ''}</span><span>${rule.target > 0 ? '<span class="status-text st-bad">INSUFICIENTE</span>' : '<span class="status-text st-none">-</span>'}</span></div>`;
+              }
            } else {
               const map = {};
               itemData.forEach(r => { const w = getWeekData(r.dateObj); const k = `SEMANA ${w.num} (${w.start} - ${w.end})`; if(!map[k]) map[k]=0; map[k]+=r.producao; });
-              Object.keys(map).sort().reverse().forEach(wk => {
-                 const badge = map[wk] >= rule.target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>';
-                 details += `<div class="goal-row"><span class="gr-date">${wk}</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">${map[wk]} / ${rule.target}</span><span>${badge}</span></div>`;
-              });
+              const weeks = Object.keys(map).sort().reverse();
+              
+              if(weeks.length > 0) {
+                  weeks.forEach(wk => {
+                     const badge = rule.target > 0 ? (map[wk] >= rule.target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>') : '<span class="status-text st-none">SEM META</span>';
+                     const disp = rule.target > 0 ? ` / ${rule.target}` : '';
+                     details += `<div class="goal-row"><span class="gr-date">${wk}</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">${map[wk]}${disp}</span><span>${badge}</span></div>`;
+                  });
+              } else {
+                  details += `<div class="goal-row"><span class="gr-date">PERÍODO SELECIONADO</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">0${rule.target > 0 ? ' / ' + rule.target : ''}</span><span>${rule.target > 0 ? '<span class="status-text st-bad">INSUFICIENTE</span>' : '<span class="status-text st-none">-</span>'}</span></div>`;
+              }
            }
-           html += `<div class="goal-item" id="gi-${displayCount}"><div class="goal-head" onclick="toggleAcc(${displayCount})"><div><span class="gh-title">${item}</span><span class="gh-badge">META: ${rule.label}</span></div><span class="material-icons expand-icon">expand_more</span></div><div class="goal-body" id="gb-${displayCount}">${details}</div></div>`;
+           html += `<div class="goal-item" id="gi-${displayCount}"><div class="goal-head" onclick="toggleAcc(${displayCount})"><div><span class="gh-title">${item}</span><span class="gh-badge d-none d-md-inline-block">META: ${rule.label}</span></div><span class="material-icons expand-icon">expand_more</span></div><div class="goal-body" id="gb-${displayCount}">${details}</div></div>`;
         });
         document.getElementById('goalsAccordion').innerHTML = html;
       }
