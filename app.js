@@ -9,6 +9,10 @@ dotenv.config();
 const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+// Permite que o servidor sirva arquivos estáticos da pasta public (onde está sua logo)
+app.use(express.static(path.join(__dirname, 'public')));
+
 const myCache = new NodeCache({ stdTTL: 600 }); // 10 min de cache na memória
 
 const SUPABASE_URL = 'https://bjmkrtumtuoypnkwvxbh.supabase.co';

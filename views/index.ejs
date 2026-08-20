@@ -9,6 +9,9 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- FAVICON: Logo na aba do navegador -->
+    <link rel="icon" type="image/png" href="/images/logo.png">
+    
     <style>
       :root {
         --bg-color: #f4f7f9; --card-bg: #ffffff; --sidebar-bg: #ffffff;
@@ -46,9 +49,9 @@
       }
       * { box-sizing: border-box; }
 
-      #loader { position: fixed; inset: 0; background: var(--bg-color); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; }
-      .spinner { width: 60px; height: 60px; border: 5px solid var(--border-color); border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-      .loader-text { font-size: 1.3rem; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+      #loader { position: fixed; inset: 0; background: var(--bg-color); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; overflow: hidden; }
+      .spinner { width: 60px; height: 60px; border: 5px solid var(--border-color); border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; position: relative; z-index: 1; }
+      .loader-text { font-size: 1.3rem; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; position: relative; z-index: 1; }
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
       body.loaded #loader { opacity: 0; pointer-events: none; }
 
@@ -233,7 +236,9 @@
   </head>
   <body>
 
+    <!-- AQUI FOI ALTERADO: A imagem da logo virou uma marca d'água de fundo gigante -->
     <div id="loader">
+      <img src="/images/logo.png" alt="Background Logo" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; height: 90vh; object-fit: contain; opacity: 0.08; pointer-events: none; z-index: 0;">
       <div class="spinner"></div>
       <div class="loader-text">CARREGANDO DADOS...</div>
     </div>
@@ -242,6 +247,11 @@
       <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
       
       <div class="sidebar" id="sidebar">
+        <!-- AQUI FOI ALTERADO: O tamanho da imagem da logo foi dobrado -->
+        <div style="width: 100%; display: flex; justify-content: center; align-items: center; padding-bottom: 20px; margin-bottom: 5px; border-bottom: 1px solid var(--border-color);">
+           <img src="/images/logo.png" alt="Logo" style="height: 100px; max-width: 85%; object-fit: contain;">
+        </div>
+
         <div class="nav-item active" onclick="currentSlide(1)" title="Diário de Produção"><span class="material-icons">history_edu</span><span class="nav-text">DIÁRIO</span></div>
         <div class="nav-item" onclick="currentSlide(2)" title="Estoque Geral"><span class="material-icons">warehouse</span><span class="nav-text">ESTOQUE</span></div>
         <div class="nav-item" onclick="currentSlide(3)" title="Análise do Item"><span class="material-icons">query_stats</span><span class="nav-text">ANÁLISE</span></div>
