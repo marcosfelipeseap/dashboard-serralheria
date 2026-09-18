@@ -112,7 +112,12 @@
     <div class="custom-dropdown" id="dd-orgao"><button class="drop-btn" onclick="toggleDropdown('orgao')">ÓRGÃO <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-orgao"></div></div>
     <div class="custom-dropdown" id="dd-material"><button class="drop-btn" onclick="toggleDropdown('material')">MATERIAL <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-material"></div></div>
     <div class="custom-dropdown" id="dd-status"><button class="drop-btn" onclick="toggleDropdown('status')">STATUS <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button><div class="dropdown-content" id="content-status"></div></div>
-    <button onclick="clearAllFilters()" style="padding: 10px; border:none; background:var(--danger-bg); border-radius: 6px; color:var(--danger); cursor:pointer; font-size:0.8rem; font-weight:700; width: 100%;">LIMPAR FILTROS</button>
+    
+    <div style="width: 100%; display: flex; gap: 10px;">
+      <button onclick="clearAllFilters()" style="padding: 10px; border:none; background:var(--danger-bg); border-radius: 6px; color:var(--danger); cursor:pointer; font-size:0.8rem; font-weight:700; flex: 1;">LIMPAR FILTROS</button>
+      <button onclick="exportProcessosExcel()" style="padding: 10px; border:none; background:#e8f5e9; border-radius: 6px; color:#2e7d32; cursor:pointer; font-size:0.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:5px; flex: 1;"><span class="material-icons" style="font-size:18px">table_view</span> EXCEL</button>
+      <button onclick="exportProcessosPDF()" style="padding: 10px; border:none; background:#ffebee; border-radius: 6px; color:#c62828; cursor:pointer; font-size:0.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:5px; flex: 1;"><span class="material-icons" style="font-size:18px">picture_as_pdf</span> PDF</button>
+    </div>
   </div>
 
   <div class="stock-table-container">
@@ -347,4 +352,109 @@
   }
 
   function clearAllFilters() { activeFilters = { n_processo: [], tipo: [], orgao: [], material: [], status: [] }; document.querySelectorAll('.drop-btn').forEach(b => b.classList.remove('active-filter')); document.getElementById('globalSearch').value = ''; applyAllFilters(); }
+
+  // ----------------------------------------------------
+  // FUNÇÕES DE EXPORTAÇÃO PARA EXCEL E PDF 
+  // ----------------------------------------------------
+  function exportProcessosExcel() {
+    if(currentFiltered.length === 0) return alert("Nenhum registro para exportar.");
+    
+    let exportData = [];
+    currentFiltered.forEach(p => {
+      if(p.itens && p.itens.length > 0) {
+        p.itens.forEach(i => {
+          exportData.push({
+            "PROCESSO": p.n_processo,
+            "ENTRADA": p.data_entrada,
+            "TIPO": p.tipo,
+            "ÓRGÃO": p.orgao,
+            "AUTORIZADO": p.autorizado,
+            "STATUS PROCESSO": p.status,
+            "MATERIAL": i.material,
+            "SUBGRUPO": i.subgrupo,
+            "QTD AUT": Number(i.qtd_aut) || 0,
+            "ENTREGUE": Number(i.qtd_ent) || 0,
+            "FALTANTE": Number(i.qtd_falt) || 0,
+            "PRAZO": i.prazo,
+            "SITUAÇÃO ITEM": i.situacao,
+            "OBSERVAÇÃO": i.observacao || ""
+          });
+        });
+      } else {
+        exportData.push({
+          "PROCESSO": p.n_processo,
+          "ENTRADA": p.data_entrada,
+          "TIPO": p.tipo,
+          "ÓRGÃO": p.orgao,
+          "AUTORIZADO": p.autorizado,
+          "STATUS PROCESSO": p.status,
+          "MATERIAL": "-",
+          "SUBGRUPO": "-",
+          "QTD AUT": 0,
+          "ENTREGUE": 0,
+          "FALTANTE": 0,
+          "PRAZO": "-",
+          "SITUAÇÃO ITEM": "-",
+          "OBSERVAÇÃO": "-"
+        });
+      }
+    });
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Processos");
+    XLSX.writeFile(wb, "Processos_Filtrados.xlsx");
+  }
+
+  function exportProcessosPDF() {
+    if(currentFiltered.length === 0) return alert("Nenhum registro para exportar.");
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('landscape');
+
+    doc.setFontSize(14);
+    doc.text("Relatório de Processos (Filtrados)", 14, 15);
+    doc.setFontSize(10);
+    doc.text("Gerado em: " + new Date().toLocaleString('pt-BR'), 14, 22);
+
+    let bodyData = [];
+    currentFiltered.forEach(p => {
+      if(p.itens && p.itens.length > 0) {
+        p.itens.forEach(i => {
+          bodyData.push([
+            p.n_processo, 
+            p.data_entrada, 
+            p.orgao, 
+            i.material, 
+            (Number(i.qtd_aut)||0).toString(), 
+            (Number(i.qtd_ent)||0).toString(), 
+            (Number(i.qtd_falt)||0).toString(), 
+            p.status
+          ]);
+        });
+      } else {
+        bodyData.push([
+          p.n_processo, 
+          p.data_entrada, 
+          p.orgao, 
+          "-", 
+          "0", 
+          "0", 
+          "0", 
+          p.status
+        ]);
+      }
+    });
+
+    doc.autoTable({
+      startY: 28,
+      head: [['Processo', 'Entrada', 'Órgão', 'Material', 'Qtd Aut', 'Entregue', 'Falt', 'Status']],
+      body: bodyData,
+      theme: 'grid',
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [69, 90, 100] } // Cor padrão var(--accent) do dashboard
+    });
+
+    doc.save("Processos_Filtrados.pdf");
+  }
 </script>
