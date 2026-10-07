@@ -241,7 +241,7 @@
   </head>
   <body>
 
-    <!-- AQUI FOI ALTERADO: A imagem da logo virou uma marca d'água de fundo gigante -->
+    <!-- MARCA D'ÁGUA DE FUNDO -->
     <div id="loader">
       <img src="/images/logo.png" alt="Background Logo" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; height: 90vh; object-fit: contain; opacity: 0.08; pointer-events: none; z-index: 0;">
       <div class="spinner"></div>
@@ -252,7 +252,6 @@
       <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
       
       <div class="sidebar" id="sidebar">
-        <!-- AQUI FOI ALTERADO: O tamanho da imagem da logo foi dobrado -->
         <div style="width: 100%; display: flex; justify-content: center; align-items: center; padding-bottom: 20px; margin-bottom: 5px; border-bottom: 1px solid var(--border-color);">
            <img src="/images/logo.png" alt="Logo" style="height: 100px; max-width: 85%; object-fit: contain;">
         </div>
@@ -263,6 +262,7 @@
         <div class="nav-item" onclick="currentSlide(4)" title="Metas Detalhadas"><span class="material-icons">track_changes</span><span class="nav-text">METAS</span></div>
         <div class="nav-item" onclick="currentSlide(5)" title="Controle de Processos"><span class="material-icons">assignment</span><span class="nav-text">PROCESSOS</span></div>
         <div class="nav-item" onclick="currentSlide(6)" title="Cronograma"><span class="material-icons">calendar_month</span><span class="nav-text">CRONOGRAMA</span></div>
+        <div class="nav-item" onclick="currentSlide(7)" title="Produção por Oficina"><span class="material-icons">stacked_line_chart</span><span class="nav-text">PROD. OFICINA</span></div>
       </div>
 
       <div class="main-content">
@@ -330,9 +330,10 @@
           <div id="goalsAccordion" class="goals-list" style="padding:15px;"></div>
         </div>
 
-        <!-- SLIDE 5 e 6: INCLUDES -->
+        <!-- INCLUDES DOS DEMAIS SLIDES -->
         <%- include('partials/processos') %>
         <%- include('partials/cronograma') %>
+        <%- include('partials/producao_oficina') %>
 
       </div>
     </div>
@@ -446,7 +447,7 @@
           if (!subObj || typeof subObj !== 'object') return '';
           const entries = Object.entries(subObj).filter(([k,v]) => Number(v) !== 0);
           if (entries.length === 0) return '';
-          return entries.map(([k,v]) => `${k}: ${v}`).join(' | ');
+          return entries.map(([k,v]) => `${k}:${v}`).join(' | ');
       }
 
       function sumSubgroups(target, source) {
@@ -467,7 +468,7 @@
           const map = {};
           rawData.forEach(row => {
               const normItem = normalizeItemName(row.item);
-              const key = `${row.data}|${row.oficina}|${normItem}`;
+              const key = `${row.data}|${row.oficina}\vert{}${normItem}`;
               if (!map[key]) {
                   map[key] = {
                       data: row.data, dateObj: row.dateObj, oficina: row.oficina, item: normItem,
@@ -503,7 +504,7 @@
 
       function getChartOptions() {
         const tc = isDarkMode ? '#ffffff' : '#222222'; const gc = isDarkMode ? '#455a64' : '#cfd8dc';
-        return { backgroundColor: { fill: 'transparent' }, titleTextStyle: { color: tc, fontSize: 16, fontName: 'Inter', bold: true }, hAxis: { textStyle: { color: tc, fontName: 'Inter', bold: true }, gridlines: { color: gc }, slantedText: true, slantedTextAngle: 90 }, vAxis: { textStyle: { color: tc, fontName: 'Inter', bold: true }, gridlines: { color: gc } }, legend: { textStyle: { color: tc, fontName: 'Inter', bold: true }, position: 'top' }, annotations: { textStyle: { color: tc, fontSize: 13, fontName: 'Inter', bold: true, auraColor: 'transparent' }, alwaysOutside: true, stem: { color: 'transparent' } }, chartArea: {width: '80%', height: '70%'} };
+        return { backgroundColor: { fill: 'transparent' }, titleTextStyle: { color: tc, fontSize: 16, fontName: 'Inter', bold: true }, hAxis: { textStyle: { color: tc, fontName: 'Inter', bold: true }, gridlines: { color: gc }, slantedText: true, slantedTextAngle: 90 }, vAxis: { textStyle: { color: tc, fontName: 'Inter', bold: true }, gridlines: { color: gc }, viewWindow: { min: 0 } }, legend: { textStyle: { color: tc, fontName: 'Inter', bold: true }, position: 'top' }, annotations: { textStyle: { color: tc, fontSize: 13, fontName: 'Inter', bold: true, auraColor: 'transparent' }, alwaysOutside: true, stem: { color: 'transparent' } }, chartArea: {width: '80%', height: '70%'} };
       }
 
       function currentSlide(n) { 
@@ -531,7 +532,6 @@
         }
         if(navItems[slideIndex-1]) navItems[slideIndex-1].classList.add("active");
         
-        // No celular, fecha o menu automaticamente ao clicar na aba
         if (window.innerWidth <= 1199) {
             document.querySelector('.sidebar').classList.remove('open');
             document.getElementById('sidebar-overlay').classList.remove('show');
@@ -541,8 +541,12 @@
       }
 
       function refreshCurrentSlide() {
-        if (slideIndex === 1) renderSlide1(); if (slideIndex === 2) renderSlide2(); if (slideIndex === 3) renderSlide3(); if (slideIndex === 4) renderSlide4(); 
+        if (slideIndex === 1) renderSlide1(); 
+        if (slideIndex === 2) renderSlide2(); 
+        if (slideIndex === 3) renderSlide3(); 
+        if (slideIndex === 4) renderSlide4(); 
         if (slideIndex === 6 && typeof initCronograma === 'function') { setTimeout(() => { initCronograma(); }, 150); }
+        if (slideIndex === 7 && typeof renderSlide7 === 'function') renderSlide7();
       }
 
       function getFilterDate(id, isEnd) {
@@ -553,7 +557,6 @@
 
       function populateFilters() {
         const oficinasGroup = [...new Set(groupedData.map(r => r.oficina))].filter(Boolean).sort();
-        // A lista de itens agora é mesclada com a lista dos itens da base de dados (mesmo se não tiverem produção).
         const itensGroup = [...new Set([
             ...groupedData.map(r => r.item.toUpperCase()), 
             ...GOAL_RULES.map(r => r.name.toUpperCase())
@@ -561,7 +564,18 @@
         
         const selOf = document.getElementById('selOficina'); selOf.innerHTML = '<option value="Todas">TODAS AS OFICINAS</option>';
         const filterObsOf = document.getElementById('filterObsOficina'); filterObsOf.innerHTML = '<option value="Todas">TODAS OFICINAS</option>';
-        oficinasGroup.forEach(o => { selOf.add(new Option(o.toUpperCase(),o)); filterObsOf.add(new Option(o.toUpperCase(),o)); });
+        const selOficinaSlide7 = document.getElementById('selOficinaSlide7'); 
+        
+        if (selOficinaSlide7) {
+            selOficinaSlide7.innerHTML = '<option value="Todas" disabled selected>SELECIONE A OFICINA</option>';
+        }
+        
+        oficinasGroup.forEach(o => { 
+            selOf.add(new Option(o.toUpperCase(),o)); 
+            filterObsOf.add(new Option(o.toUpperCase(),o)); 
+            if (selOficinaSlide7) selOficinaSlide7.add(new Option(o.toUpperCase(),o));
+        });
+
         const selItem = document.getElementById('selItem'); selItem.innerHTML = '<option value="" disabled selected>SELECIONE UM ITEM...</option>';
         const filterObsItem = document.getElementById('filterObsItem'); filterObsItem.innerHTML = '<option value="Todos" selected>TODOS ITENS</option>';
         itensGroup.forEach((i) => { selItem.add(new Option(i, i)); filterObsItem.add(new Option(i, i)); });
@@ -826,7 +840,6 @@
         const dStart = getFilterDate('dateStart', false); const dEnd = getFilterDate('dateEnd', true);
         const filtered = groupedData.filter(r => (!dStart || r.dateObj>=dStart) && (!dEnd || r.dateObj<=dEnd));
         
-        // Agora todos os itens exclusivos do banco, mesmo os que não tenham tido produção no dia/semana, entram na listagem.
         const distinctItems = [...new Set([
             ...filtered.map(r => r.item.toUpperCase()),
             ...GOAL_RULES.map(r => r.name.toUpperCase())
@@ -853,7 +866,6 @@
                      details += `<div class="goal-row"><span class="gr-date">${d}</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">${map[d]}${disp}</span><span>${badge}</span></div>`;
                   });
               } else {
-                  // Se o produto está no DB e é gerado via accordion, mostra 0 na semana/dia que não tiver produção
                   details += `<div class="goal-row"><span class="gr-date">PERÍODO SELECIONADO</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">0${rule.target > 0 ? ' / ' + rule.target : ''}</span><span>${rule.target > 0 ? '<span class="status-text st-bad">INSUFICIENTE</span>' : '<span class="status-text st-none">-</span>'}</span></div>`;
               }
            } else {
@@ -877,6 +889,7 @@
       }
 
       window.toggleAcc = function(id) { document.getElementById('gb-'+id).classList.toggle('open'); }
+      
       function getWeekData(d) {
          const date = new Date(d.getTime()); date.setHours(0,0,0,0); date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
          const week1 = new Date(date.getFullYear(), 0, 4); const weekNum = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
@@ -884,6 +897,7 @@
          const firstday = new Date(curr.setDate(diff)); const lastday = new Date(curr.setDate(curr.getDate()+4)); 
          return { num: weekNum, start: fmtDate(firstday), end: fmtDate(lastday) };
       }
+      
       function parseDate(str) { if(!str) return new Date(0); const p = str.split('/'); return (p.length === 3) ? new Date(p[2], p[1]-1, p[0]) : new Date(str); }
       function fmtDate(d) { return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}`; }
     </script>

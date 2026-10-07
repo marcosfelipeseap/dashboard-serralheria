@@ -1,0 +1,257 @@
+<style>
+  .grid-slide7 { display: grid; gap: 25px; grid-template-columns: 3fr 1fr; }
+  .totais-container { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; overflow-x: hidden; max-height: 500px; padding-right: 5px; }
+  .total-card { background: var(--input-bg); border: 1px solid var(--border-color); border-left: 6px solid var(--accent); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.2s; gap: 12px; }
+  .total-card:hover { transform: translateX(5px); border-color: var(--accent); }
+  .tc-name { font-size: 0.85rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; line-height: 1.3; flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; }
+  .tc-val { font-size: 1.8rem; font-weight: 800; color: var(--text-main); line-height: 1; flex-shrink: 0; text-align: right; }
+  
+  .item-filter-box { display: inline-flex; align-items: center; gap: 6px; background: var(--input-bg); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 700; cursor: pointer; color: var(--text-main); transition: 0.2s; }
+  .item-filter-box:hover { border-color: var(--accent); background: var(--card-bg); }
+  .item-filter-box input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--accent); }
+
+  @media (max-width: 1199px) { 
+      .grid-slide7 { grid-template-columns: 1fr; } 
+      .totais-container { max-height: none; overflow-y: visible; overflow-x: visible; }
+  }
+</style>
+
+<div class="slide fade" id="slide7" style="display: none;">
+  <div class="slide-header">
+    <div class="slide-title"><span class="material-icons">stacked_line_chart</span> PRODUÇÃO POR OFICINA</div>
+    <div class="filter-wrapper">
+      <select id="selOficinaSlide7" onchange="onOficinaChangeSlide7()">
+        <!-- Preenchido automaticamente via JavaScript no index.ejs -->
+      </select>
+    </div>
+  </div>
+  
+  <!-- BARRA DE FILTRO DE ITENS (EXIBIR/OCULTAR) -->
+  <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 18px 25px; margin-bottom: 25px; box-shadow: var(--shadow);">
+     <div style="font-size: 0.9rem; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+         <span class="material-icons" style="font-size: 20px;">filter_alt</span> Filtrar Itens do Gráfico e Totais:
+     </div>
+     <div id="itemCheckboxesContainer" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">Selecione uma oficina acima para ver os itens disponíveis.</span>
+     </div>
+  </div>
+
+  <div class="grid-slide7">
+    <!-- COLUNA 1: GRÁFICO -->
+    <div class="chart-card" style="padding:25px;">
+       <div id="chartTitle7" style="text-align:center; margin-bottom:20px; font-weight:800; font-size:1.2rem; text-transform: uppercase; color: var(--text-main);">
+           ACOMPANHAMENTO DE PRODUÇÃO
+       </div>
+       <div id="chart_producao_oficina" style="height: 500px; width: 100%;"></div>
+       <div id="msg-empty-slide7" style="display:none; text-align:center; padding: 100px 20px; color:var(--text-muted); opacity:0.8;">
+           <span class="material-icons" style="font-size: 5rem; margin-bottom: 15px;">bar_chart</span>
+           <h3 style="font-size: 1.5rem; text-transform: uppercase;">SELECIONE UMA OFICINA COM DADOS NESSE PERÍODO</h3>
+       </div>
+    </div>
+
+    <!-- COLUNA 2: TOTAIS DO PERÍODO -->
+    <div class="chart-card" style="padding:25px;">
+       <div style="text-align:center; margin-bottom:20px; font-weight:800; font-size:1.2rem; text-transform: uppercase; color: var(--text-main); display: flex; align-items: center; justify-content: center; gap: 8px;">
+           <span class="material-icons" style="color: var(--accent);">fact_check</span> TOTAIS DO PERÍODO
+       </div>
+       <div id="totais_oficina_container" class="totais-container">
+          <div style="text-align:center; color:var(--text-muted); padding:20px; font-weight:600;">Aguardando seleção...</div>
+       </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let availableItemsCache = [];
+
+  function onOficinaChangeSlide7() {
+      // Quando troca de oficina, reseta os checkboxes gerando novos para os itens da nova oficina
+      generateItemCheckboxes(true);
+      renderSlide7();
+  }
+
+  function generateItemCheckboxes(resetChecked = false) {
+      const oficina = document.getElementById('selOficinaSlide7').value;
+      const dStart = getFilterDate('dateStart', false);
+      const dEnd = getFilterDate('dateEnd', true);
+      const container = document.getElementById('itemCheckboxesContainer');
+
+      if (!oficina || oficina === "Todas") {
+          container.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">Selecione uma oficina acima para ver os itens disponíveis.</span>';
+          availableItemsCache = [];
+          return;
+      }
+
+      // Filtra dados da oficina e período para descobrir quais itens possuem produção > 0
+      const filtered = groupedData.filter(r => {
+          if (r.oficina !== oficina) return false;
+          if (dStart && r.dateObj < dStart) return false;
+          if (dEnd && r.dateObj > dEnd) return false;
+          return true;
+      });
+
+      const itemTotals = {};
+      filtered.forEach(r => {
+          if (!itemTotals[r.item]) itemTotals[r.item] = 0;
+          itemTotals[r.item] += r.producao;
+      });
+
+      // Remove estritamente itens que estão zerados no período atual
+      const activeItems = Object.keys(itemTotals).filter(item => itemTotals[item] > 0).sort();
+      
+      if (activeItems.length === 0) {
+          container.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">Nenhum item com produção neste período.</span>';
+          availableItemsCache = [];
+          return;
+      }
+
+      // Salva os estados atuais dos checkboxes antes de recriar (se não for reset forçado)
+      const currentStates = {};
+      if (!resetChecked) {
+          document.querySelectorAll('.item-checkbox').forEach(cb => {
+              currentStates[cb.value] = cb.checked;
+          });
+      }
+
+      availableItemsCache = activeItems;
+      let html = '';
+      activeItems.forEach(item => {
+          const isChecked = (currentStates[item] !== undefined) ? currentStates[item] : true;
+          html += `
+          <label class="item-filter-box">
+              <input type="checkbox" class="item-checkbox" value="${item}" ${isChecked ? 'checked' : ''} onchange="renderSlide7()">
+              ${item}
+          </label>`;
+      });
+      container.innerHTML = html;
+  }
+
+  function renderSlide7() {
+      const oficina = document.getElementById('selOficinaSlide7').value;
+      const dStart = getFilterDate('dateStart', false);
+      const dEnd = getFilterDate('dateEnd', true);
+      
+      if (!oficina || oficina === "Todas") {
+          document.getElementById('chart_producao_oficina').style.display = 'none';
+          document.getElementById('msg-empty-slide7').style.display = 'block';
+          document.getElementById('totais_oficina_container').innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px; font-weight:600;">Aguardando seleção...</div>';
+          return;
+      }
+
+      // Garante que os checkboxes sejam recalculados dinamicamente com base no período/datas atuais
+      generateItemCheckboxes(false);
+
+      // Identifica quais itens estão marcados pelo usuário nas caixas de seleção
+      const selectedItems = [];
+      document.querySelectorAll('.item-checkbox').forEach(cb => {
+          if (cb.checked) selectedItems.push(cb.value);
+      });
+
+      document.getElementById('msg-empty-slide7').style.display = 'none';
+      document.getElementById('chart_producao_oficina').style.display = 'block';
+
+      // 1. Filtra os dados globais pela oficina e período
+      const filtered = groupedData.filter(r => {
+          if (r.oficina !== oficina) return false;
+          if (dStart && r.dateObj < dStart) return false;
+          if (dEnd && r.dateObj > dEnd) return false;
+          return true;
+      });
+
+      // 2. Calcula o total de cada item no período
+      const itemTotals = {};
+      filtered.forEach(r => {
+          if (!itemTotals[r.item]) itemTotals[r.item] = 0;
+          itemTotals[r.item] += r.producao;
+      });
+
+      // 3. Renderiza apenas os Cards de Totais dos itens marcados
+      let totalsHtml = '';
+      let renderedTotalsCount = 0;
+      selectedItems.forEach(item => {
+          const totalVal = itemTotals[item] || 0;
+          totalsHtml += `
+          <div class="total-card">
+              <span class="tc-name">${item}</span>
+              <span class="tc-val">${totalVal}</span>
+          </div>`;
+          renderedTotalsCount++;
+      });
+
+      if (renderedTotalsCount === 0) {
+          totalsHtml = '<div style="text-align:center; color:var(--text-muted); padding:20px; font-weight:600;">Nenhum item selecionado.</div>';
+      }
+      document.getElementById('totais_oficina_container').innerHTML = totalsHtml;
+
+      if (selectedItems.length === 0) {
+          document.getElementById('chart_producao_oficina').style.display = 'none';
+          document.getElementById('msg-empty-slide7').style.display = 'block';
+          return;
+      }
+
+      // 4. Prepara dados para o Gráfico apenas com os itens selecionados
+      const dateMap = {};
+      filtered.forEach(r => {
+          if (selectedItems.includes(r.item)) {
+              if (!dateMap[r.data]) {
+                  dateMap[r.data] = { dateObj: r.dateObj };
+                  selectedItems.forEach(i => dateMap[r.data][i] = 0);
+              }
+              dateMap[r.data][r.item] += r.producao;
+          }
+      });
+
+      const sortedDates = Object.values(dateMap).sort((a, b) => a.dateObj - b.dateObj);
+
+      if (sortedDates.length === 0) {
+          document.getElementById('chart_producao_oficina').style.display = 'none';
+          document.getElementById('msg-empty-slide7').style.display = 'block';
+          return;
+      }
+
+      // 5. Monta o DataTable com anotações de números
+      const dt = new google.visualization.DataTable();
+      dt.addColumn('string', 'Data');
+      
+      selectedItems.forEach(i => {
+          dt.addColumn('number', i); 
+          dt.addColumn({type: 'string', role: 'annotation'});
+      });
+
+      sortedDates.forEach(row => {
+          const rData = [fmtDate(row.dateObj)];
+          selectedItems.forEach(i => {
+              const val = row[i] || 0;
+              rData.push(val);
+              rData.push(val > 0 ? val.toString() : null);
+          });
+          dt.addRow(rData);
+      });
+
+      // 6. Opções do Gráfico
+      const baseOpt = getChartOptions();
+      const options = {
+          ...baseOpt,
+          title: null,
+          curveType: 'function',
+          lineWidth: 4,
+          pointSize: 8,
+          annotations: {
+              alwaysOutside: true,
+              textStyle: { fontSize: 13, bold: true, color: isDarkMode ? '#ffffff' : '#111111' },
+              stem: { length: -5 }
+          },
+          legend: { 
+              position: 'top', 
+              maxLines: 3, 
+              textStyle: { color: isDarkMode ? '#ffffff' : '#222222', fontName: 'Inter', fontSize: 12, bold: true } 
+          },
+          chartArea: { width: '92%', height: '70%' },
+          hAxis: { ...baseOpt.hAxis, slantedText: false, showTextEvery: Math.ceil(sortedDates.length / 10) }
+      };
+
+      // 7. Desenha o Gráfico
+      const chart = new google.visualization.LineChart(document.getElementById('chart_producao_oficina'));
+      chart.draw(dt, options);
+  }
+</script>
