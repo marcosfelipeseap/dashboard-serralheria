@@ -15,256 +15,631 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
     <!-- FAVICON: Logo na aba do navegador -->
-    <link rel="icon" type="image/png" href="/images/logo.png">
+    <link rel="icon" type="image/png" href="/images/logo_colorido.png">
     
     <style>
-      :root {
-        --bg-color: #f4f7f9; --card-bg: #ffffff; --sidebar-bg: #ffffff;
-        --text-main: #222222; --text-muted: #444444; 
-        --accent: #455a64; --accent-light: #cfd8dc; 
-        --border-color: #cfd8dc; --input-bg: #f0f4f7;
-        --shadow: 0 4px 12px rgba(0,0,0,0.08);
-        --success: #1b5e20; --success-bg: #c8e6c9;
-        --warning: #e65100; --warning-bg: #ffe0b2;
-        --danger: #b71c1c; --danger-bg: #ffcdd2;
-        --neutral: #424242; --neutral-bg: #e0e0e0;
-        --table-head-bg: #e2e8ea; --table-row-hover: #fcfdfe;
-        --acc-bg: #fcfdfe; --flash-bg: #eceff1; --flash-border: #90a4ae;
+
+        /* PADRÃO GLOBAL: Nomes e Textos */
+  /* Reduz o tamanho da fonte, quebra apenas nos espaços e nunca separa sílabas */
+  .texto-fluido {
+      word-break: normal !important;
+      overflow-wrap: normal !important;
+      hyphens: none !important;
+      white-space: normal !important;
+      font-size: clamp(0.7rem, 2.5vw, 0.9rem) !important;
+      line-height: 1.2 !important;
+  }
+
+  /* PADRÃO GLOBAL: Números e Quantidades */
+  /* NUNCA quebra a linha. Força o número a encolher até caber perfeitamente */
+  .numero-fluido {
+      white-space: nowrap !important;
+      word-break: keep-all !important;
+      overflow-wrap: normal !important;
+      font-size: clamp(0.65rem, 3vw, 1.1rem) !important; 
+  }
+  :root {
+    /* 1. ESTRUTURA E FUNDO (Padrão Catálogo SEAP) */
+    --bg-color: #f8fafc; 
+    --card-bg: #ffffff; 
+    --sidebar-bg: #001E7A;
+    
+    /* 2. TEXTOS PADRÃO */
+    --text-main: #1e293b; 
+    --text-muted: #64748b; 
+    
+    /* 3. CORES DA MARCA (Azul e Laranja SEAP) */
+    --accent: #001E7A; 
+    --accent-dark: #001557;
+    --accent-gradient: #001E7A;
+    --accent-light: #e0e7ff;
+    --accent-orange: #E89E37;
+    
+    /* 4. BORDAS E SOMBRAS */
+    --border-color: #e2e8f0; 
+    --input-bg: #f1f5f9;
+    --shadow: 0 2px 5px rgba(0,0,0,0.05);
+    
+    /* 5. CORES DE STATUS E ALERTAS (MANTIDAS INTACTAS) */
+    --success: #1b5e20; 
+    --success-bg: #e8f5e9;
+    --warning: #e65100; 
+    --warning-bg: #fff3e0;
+    --danger: #b71c1c; 
+    --danger-bg: #ffebee;
+    --neutral: #424242; 
+    --neutral-bg: #f5f5f5;
+    
+    /* 6. TABELAS E ELEMENTOS EXTRAS */
+    --table-head-bg: #f8fafd; 
+    --table-row-hover: #fcfdfe;
+    --acc-bg: #fcfdfe; 
+    --flash-bg: #ffffff; 
+    --flash-border: #455a64;
+  }
+
+  /* FORÇAR PADRÃO CATÁLOGO (Cantos mais quadrados e sem listras laterais) */
+  .top-bar, .slide-header, .chart-card, .new-card, .flash-box {
+      border-radius: 8px !important;
+      border: 1px solid var(--border-color) !important;
+      box-shadow: var(--shadow) !important;
+  }
+  
+  /* Remove a listra lateral do resumo para tirar aspecto de IA */
+  .flash-box { border-left: 1px solid var(--border-color) !important; }
+
+  /* Menus laterais mais planos */
+  .nav-item { border-radius: 8px; transition: 0.2s; }
+  .nav-item.active { box-shadow: none; }
+
+  /* ETIQUETAS DE STATUS CONTORNADAS E DESTACADAS */
+  .nc-pill.ok, .st-ok { background: var(--success-bg); color: var(--success); border: 1px solid currentColor !important; font-weight: 800; }
+  .nc-pill.fail, .st-bad { background: var(--danger-bg); color: var(--danger); border: 1px solid currentColor !important; font-weight: 800; }
+  .nc-pill.neutral, .st-none { background: var(--neutral-bg); color: var(--text-muted); border: 1px solid var(--border-color) !important; }
+
+  /* CAIXA DE ALERTA ORIGEM DOS DADOS */
+  .alert-info-box { background: var(--input-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 8px; margin-bottom: 25px; box-shadow: var(--shadow); }
+  .alert-info-box .alert-title { font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 8px; margin-bottom: 15px; font-size: 1.15rem; text-transform: uppercase; }
+
+  body.dark-mode {
+    --bg-color: #121416; --card-bg: #1c2126; --sidebar-bg: #1c2126;
+    --text-main: #f0f2f5; --text-muted: #a0abb5;
+    --accent: #b0bec5; --accent-dark: #78909c;
+    --accent-gradient: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    --accent-light: #23292e;
+    --border-color: #2a3138; --input-bg: #23292e;
+    --shadow: 0 10px 30px rgba(0,0,0,0.3);
+    --success-bg: rgba(46, 125, 50, 0.2);
+    --warning-bg: rgba(255, 152, 0, 0.1);
+    --danger-bg: rgba(198, 40, 40, 0.2);
+    --table-head-bg: #23292e; --table-row-hover: #2a3138;
+    --acc-bg: #23292e; --flash-bg: #1c2126; --flash-border: #78909c;
+  }
+
+  /* FORÇANDO A FONTE POPPINS GLOBALMENTE */
+  html, body { 
+    background-color: var(--bg-color); color: var(--text-main); 
+    font-family: 'Poppins', sans-serif; transition: background-color 0.3s, color 0.3s; 
+    max-width: 100vw; overflow-x: hidden; margin: 0; padding: 0;
+  }
+  * { box-sizing: border-box; }
+
+  #loader { position: fixed; inset: 0; background: var(--bg-color); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; overflow: hidden; }
+  .spinner { width: 60px; height: 60px; border: 5px solid var(--border-color); border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; position: relative; z-index: 1; }
+  .loader-text { font-size: 1.3rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; position: relative; z-index: 1; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  body.loaded #loader { opacity: 0; pointer-events: none; }
+
+  .layout-wrapper { display: flex; min-height: 100vh; position: relative; width: 100%; max-width: 100vw; overflow-x: hidden; }
+  
+  .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 90; backdrop-filter: blur(2px); }
+  .sidebar-overlay.show { display: block; }
+
+  .sidebar { width: 320px; position: fixed; left: 0; top: 0; bottom: 0; background: var(--sidebar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: flex-start; padding-top: 25px; gap: 10px; z-index: 1000; overflow-x: hidden; white-space: nowrap; transition: left 0.3s; }
+  
+  /* MENU COM DEGRADÊ QUANDO ATIVO */
+  .nav-item { width: calc(100% - 40px); margin: 0 20px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: flex-start; padding-left: 15px; color: #ffffff; cursor: pointer; transition: 0.3s all ease; border: none; text-decoration: none; }
+  .nav-item:hover { background: rgba(255, 255, 255, 0.1); color: #ffffff; }
+  .nav-item.active { background: #ffffff !important; color: var(--sidebar-bg) !important; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25); }
+  
+  .nav-item .material-icons { font-size: 28px; min-width: 34px; } 
+  .nav-text { margin-left: 15px; font-size: 1.05rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+
+  .main-content { flex: 1; overflow-y: auto; padding: 30px; position: relative; margin-left: 320px; width: calc(100vw - 320px); transition: margin-left 0.3s, width 0.3s; overflow-x: hidden; }
+  
+  /* CARDS COM BORDER RADIUS ALTO E SOMBRAS SUAVES */
+  .top-bar { background: var(--card-bg); padding: 15px 25px; border-radius: 20px; border: none; box-shadow: var(--shadow); margin-bottom: 30px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; }
+  .title-box { display: flex; align-items: center; gap: 10px; }
+  .title-box h1 { margin: 0; font-size: 1.6rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; } 
+  
+  #mobile-menu-btn { display: none; background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 12px; padding: 5px 10px; cursor: pointer; }
+  
+  .date-filters { display: flex; gap: 10px; background: var(--input-bg); padding: 10px 15px; border-radius: 14px; border: 1px solid transparent; } 
+  .date-filters input { border: none; background: transparent; color: var(--text-main); outline: none; cursor: pointer; font-family: inherit; font-size: 0.95rem; font-weight: 500; width: 130px;} 
+  
+  .theme-btn { cursor: pointer; background: transparent; border: 1px solid var(--border-color); padding: 10px; border-radius: 14px; color: var(--text-muted); transition: 0.2s; display:flex; align-items:center; justify-content:center;}
+  .theme-btn:hover { background: var(--input-bg); color: var(--accent); }
+  .clock-display { font-size: 1.2rem; font-weight: 700; color: var(--accent); background: var(--input-bg); padding: 8px 16px; border-radius: 14px; display: flex; align-items: center; gap: 8px; }
+
+  .slide { display: none; animation: fadeEffect 0.4s ease; }
+  .slide.active { display: block; }
+  @keyframes fadeEffect { from {opacity: 0; transform: translateY(10px);} to {opacity: 1; transform: translateY(0);} }
+
+  /* CABEÇALHO DOS SLIDES (Tirado a borda pesada embaixo) */
+  .slide-header { background: var(--card-bg); padding: 20px 25px; border-radius: 20px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:15px; border: none; box-shadow: var(--shadow); }
+  .slide-title { font-size: 1.4rem; color: var(--text-main); font-weight: 700; display: flex; align-items: center; gap: 12px; text-transform: uppercase; } 
+  .slide-title .material-icons { color: var(--accent); font-size: 28px; }
+
+  .filter-wrapper { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; width: 100%; justify-content: flex-end;}
+  .filter-wrapper select, .filter-wrapper input { padding: 12px 16px; background-color: var(--input-bg); color: var(--text-main); border: 1px solid transparent; border-radius: 12px; min-width: 160px; font-family: inherit; font-size: 0.95rem; font-weight: 500; outline: none; flex: 1; transition: 0.2s; }
+  .filter-wrapper select:focus, .filter-wrapper input:focus { border-color: var(--accent); }
+  select[multiple] { height: 50px; padding: 5px; overflow-y: auto; background-color: var(--input-bg); color: var(--text-main); }
+  
+  .chart-grid { display: grid; gap: 30px; }
+  .grid-2 { grid-template-columns: 2fr 1fr; }
+  .chart-card { background: var(--card-bg); border-radius: 20px; border: none; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; width: 100%;}
+
+  /* ========================================================= */
+  /* TABELA DIÁRIO DE PRODUÇÃO - ESTRUTURA GERAL */
+  /* ========================================================= */
+  .stock-table-container { height: 500px; overflow-y: auto; overflow-x: auto; width: 100%; box-sizing: border-box; }
+  .stock-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
+  
+  .stock-table th { background: var(--card-bg); color: var(--text-muted); padding: 15px; position: sticky; top: 0; z-index: 1; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+  .stock-table td { padding: 12px 15px; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-size: clamp(0.75rem, 1.5vw, 0.95rem); font-weight: 500; } 
+  .stock-table tr:hover td { background-color: var(--table-row-hover); }
+
+  /* PROTEÇÃO NO PC: Impede Data, Status e Oficina de quebrarem linha */
+  @media (min-width: 1200px) {
+      .stock-table td:nth-child(1), .stock-table td:nth-child(2),
+      .stock-table td:nth-child(4), .stock-table td:nth-child(5),
+      .stock-table td:nth-child(6), .stock-table td:nth-child(7),
+      .stock-table td:nth-child(9) {
+          white-space: nowrap !important;
+      }
+      /* Dá espaço de sobra para o Item e Detalhes quebrarem linha corretamente (Diário) */
+      .stock-table td:nth-child(3) { min-width: 200px; word-break: break-word; }
+      .stock-table td:nth-child(8) { min-width: 250px; word-break: break-word; }
+
+      /* AJUSTE DO ESTOQUE (SLIDE 2): Permite a quebra de linha e evita a rolagem horizontal */
+      #slide2 .stock-table td:nth-child(1) {
+          white-space: normal !important; /* Libera a quebra de linha */
+          word-wrap: break-word !important; /* Quebra palavras grandes se necessário */
+          max-width: 180px; /* Limite de espaço antes de jogar o texto para a linha de baixo */
+          font-size: 0.8rem !important; /* Diminui a fonte do item para caber melhor */
+          line-height: 1.3 !important;
+      }
+      
+      /* Ajuste extra nas células vizinhas para compensar o espaço */
+      #slide2 .stock-table td {
+          padding: 12px 10px !important;
+      }
+  }
+  
+  .badge-stock { padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.95rem; background: var(--input-bg); border: 1px solid transparent; color: var(--text-main); }
+  .status-text { font-weight: 600; font-size: 0.8rem; text-transform: uppercase; padding: 6px 12px; border-radius: 8px; letter-spacing: 0.5px; }
+  .st-ok { color: var(--success); background: var(--success-bg); }
+  .st-bad { color: var(--danger); background: var(--danger-bg); }
+  .st-none { color: var(--text-muted); font-weight: 600; }
+  .bs-pos { background: var(--success-bg); color: var(--success); }
+  .bs-neg { background: var(--danger-bg); color: var(--danger); }
+
+  .origem-badge { display: inline-flex; align-items: center; gap:4px; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; border: 1px solid transparent;}
+  .ob-plan { background-color: #fff3cd; color: #856404; }
+  .ob-bd { background-color: #e3f2fd; color: #0d47a1; }
+  .subgroup-text { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; display: block; border-top: 1px dashed var(--border-color); padding-top: 4px; margin-top: 4px;}
+
+  .flash-box { background: var(--card-bg); border: none; border-left: 6px solid var(--accent); border-radius: 20px; padding: 25px; margin-bottom: 30px; box-shadow: var(--shadow); }
+  .flash-header { font-weight: 700; font-size: 1.2rem; color: var(--text-main); margin-bottom: 20px; display:flex; align-items:center; gap:10px; text-transform: uppercase; } 
+  .flash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+  
+  .new-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; position: relative; }
+  .new-card:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+  .new-card-header { padding: 18px 20px; background: var(--input-bg); display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-color); }
+  .nc-titles { display: flex; flex-direction: column; }
+  .nc-oficina { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.5px;}
+  .nc-item { font-weight: 700; color: var(--text-main); font-size: 1.15rem; text-transform: uppercase; } 
+  .nc-internos { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; margin-top: 6px; }
+  
+  .nc-pill { padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-left: 10px; border: none; text-transform: uppercase;}
+  .nc-pill.ok { background: var(--success-bg); color: var(--success); }
+  .nc-pill.fail { background: var(--danger-bg); color: var(--danger); }
+  .nc-pill.neutral { background: var(--neutral-bg); color: var(--text-muted); }
+
+  .new-card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+  .nc-metrics { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
+  .nc-metric-group { display: flex; flex-direction: column; }
+  .nc-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;}
+  .nc-big-val { font-size: 2.4rem; font-weight: 700; color: var(--text-main); line-height: 1; } 
+  .nc-sub-val { font-size: 1.1rem; font-weight: 600; color: var(--text-muted); }
+  .nc-perc { font-size: 1rem; font-weight: 700; }
+  .nc-perc.ok { color: var(--success); }
+  .nc-perc.fail { color: var(--danger); }
+
+  .nc-week-list { background: var(--input-bg); padding: 15px; border-radius: 16px; margin-bottom: 15px; border: none; display: flex; flex-wrap: wrap; justify-content: space-between; }
+  .nc-day-col { display: flex; flex-direction: column; align-items: center; min-width: 40px; }
+  .nc-day-name { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted);}
+  .nc-day-date { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; }
+  .nc-day-val { font-size: 1rem; font-weight: 700; margin-top: 4px;}
+  
+  .nc-footer { border-top: 1px dashed var(--border-color); padding-top: 15px; margin-top: 5px; }
+  .nc-footer-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+  .nc-footer-label { font-weight: 600; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;}
+  .nc-footer-val { font-weight: 700; color: var(--text-main); font-size: 1.1rem; }
+
+  .nc-obs-panel { margin-top: 15px; padding: 12px 15px; background-color: var(--danger-bg); border-radius: 12px; font-size: 0.85rem; font-weight: 500; color: var(--danger); border: none; }
+  .nc-obs-panel.bd-info { background-color: #e3f2fd; color: #0d47a1; }
+
+  .goals-list { display: flex; flex-direction: column; gap: 18px; }
+  .goal-item { background: var(--card-bg); border: none; border-radius: 20px; overflow: hidden; box-shadow: var(--shadow); transition: 0.2s; }
+  .goal-head { padding: 20px 25px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); }
+  .goal-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; background: var(--card-bg); border-top: 1px solid var(--border-color); }
+  .goal-body.open { max-height: 800px; overflow-y: auto; }
+  .goal-row { display: flex; justify-content: space-between; padding: 15px 25px; border-bottom: 1px dashed var(--border-color); font-size: 0.95rem; font-weight: 500;}
+  .gh-title { font-weight: 700; font-size: 1.15rem; text-transform: uppercase; color: var(--text-main);}
+  .gh-badge { background: var(--input-bg); border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-left: 20px; color: var(--text-muted);}
+
+  /* CLASSES PARA O MENU SUSPENSO (DROPDOWN) */
+  .custom-dropdown { position: relative; display: inline-block; }
+  .drop-btn { background: var(--input-bg); border: 1px solid transparent; padding: 12px 16px; border-radius: 12px; cursor: pointer; font-size: 0.95rem; color: var(--text-main); font-weight: 500; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; font-family: inherit; transition: 0.2s;}
+  .drop-btn:hover { border-color: var(--accent); }
+  
+    .dropdown-content { 
+        display: none; position: absolute; top: 110%; left: 0; 
+        background-color: var(--card-bg); 
+        min-width: 100%; width: max-content; 
+        max-width: 90vw !important; 
+        box-shadow: var(--shadow); z-index: 1000; 
+        border: 1px solid var(--border-color); border-radius: 16px; 
+        padding: 10px; overflow-y: auto; 
+    }
+    .dropdown-content.show { display: block; animation: fadeEffect 0.2s; }
+  
+    .checkbox-item { 
+        padding: 8px 10px; 
+        border-radius: 8px; 
+        transition: 0.2s; 
+    }
+    .checkbox-item:hover { background-color: var(--input-bg); }
+  
+    /* CORREÇÃO DEFINITIVA DO ALINHAMENTO E TAMANHO DA FONTE */
+    .s1-check-row {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important; 
+        gap: 10px !important; 
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        color: var(--text-main) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 0 0 2px 0 !important;
+        transition: background 0.2s !important;
+    }
+    .s1-check-row:hover {
+        background-color: var(--input-bg) !important;
+    }
+    .s1-check-row input[type="checkbox"] {
+        accent-color: var(--accent) !important;
+        width: 18px !important;
+        height: 18px !important;
+        min-width: 18px !important; /* Trava a largura para o checkbox nunca sumir */
+        margin: 0 !important;
+        padding: 0 !important;
+        cursor: pointer !important;
+        flex-shrink: 0 !important; /* Proíbe o navegador de esmagar a caixinha */
+    }
+    .s1-check-row span {
+        /* A fonte se adapta dinamicamente: encolhe até 0.75rem em celulares pequenos e vai até 0.95rem no PC */
+        font-size: clamp(0.75rem, 1.5vw, 0.95rem) !important; 
+        text-align: left !important;
+        flex: 1 !important; /* Ocupa todo o espaço restante à direita da checkbox */
+        display: block !important;
+        white-space: normal !important; /* Permite quebra limpa caso o nome seja grande */
+        word-break: break-word !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Dá respiro aos botões do Cronograma e mantém o arredondamento */
+    .fc .fc-button-group {
+        display: flex !important;
+        gap: 10px !important; 
+    }
+    .fc .fc-button-group > .fc-button {
+        border-radius: 8px !important; /* Devolve as bordas arredondadas */
+        margin: 0 !important; /* Remove a margem negativa que os cola */
+        box-shadow: var(--shadow) !important; /* Leve sombra para destacar */
+    }
+
+  @media (max-width: 1199px) { 
+      .sidebar { left: -320px; }
+      .sidebar.open { left: 0; }
+      .main-content { margin-left: 0; width: 100vw; max-width: 100vw; padding: 15px; }
+
+      #mobile-menu-btn { display: block; }
+      .clock-display { display: none; } 
+      
+      .top-bar { padding: 20px; flex-direction: column; align-items: flex-start; }
+      .top-bar > div:last-child {width: 100%; flex-wrap: wrap !important; justify-content: space-between; gap: 12px !important;}
+      .date-filters {flex: 1; width: 100% !important; order: -1; justify-content: space-between;}
+      .date-filters input { width: 48%; text-align: center; }
+
+      .slide-header { padding: 20px; }
+      .slide-title { font-size: 1.2rem; }
+      .slide-title .material-icons { font-size: 24px; }
+
+      .chart-grid.grid-2 { grid-template-columns: 1fr; }
+      .flash-grid { grid-template-columns: 1fr; }
+
+      /* ========================================================= */
+      /* PROTEÇÃO NO MOBILE: Impede vazamento horizontal da tela */
+      /* ========================================================= */
+      .chart-card { max-width: 100%; overflow: hidden; box-sizing: border-box; } /* Trava o card na tela */
+
+      .stock-table-container { border: none !important; background: transparent; height: auto !important; max-height: none !important; overflow-x: hidden !important;}
+      .stock-table { display: block; width: 100%; border: none !important; box-sizing: border-box; }
+      .stock-table thead { display: none; }
+      
+      .stock-table tbody tr {
+          display: flex; flex-direction: column; /* Transforma a linha numa caixa rígida */
+          margin-bottom: 15px; background: var(--card-bg);
+          border: none; border-radius: 16px; box-shadow: var(--shadow);
+          padding: 0; width: 100%; max-width: 100%; box-sizing: border-box;
+      }
+      
+      .stock-table tbody td {
+          display: flex; justify-content: space-between; align-items: center; 
+          padding: 10px 15px !important; border-bottom: 1px solid var(--border-color) !important; border-top: none;
+          gap: 10px; font-size: clamp(0.75rem, 2.5vw, 0.85rem); 
+          width: 100%; box-sizing: border-box; text-align: right;
+      }
+      .stock-table tbody td:last-child { border-bottom: none !important; }
+
+      /* Rótulo esquerdo (ex: "Oficina", "Produção") trava em no máximo 40% da largura */
+      #dailyTableBody td::before, #stockTableBody td::before { 
+          font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); 
+          flex-shrink: 0; max-width: 40%; white-space: normal; text-align: left; margin-right: 5px;
+      }
+      
+      /* Conteúdo direito (Data, Nome, etc) usa até 60% e quebra a palavra antes de esticar a tela */
+      #dailyTableBody td > *, #stockTableBody td > * {
+          max-width: 60%; 
+          text-align: right;
+          word-break: break-word;
+          overflow-wrap: break-word;
       }
 
-      body.dark-mode {
-        --bg-color: #121212; --card-bg: #1e272e; --sidebar-bg: #1e272e;
-        --text-main: #ffffff; --text-muted: #cfd8dc;
-        --accent: #b0bec5; --accent-light: #37474f; 
-        --border-color: #455a64; --input-bg: #263238;
-        --shadow: 0 4px 12px rgba(0,0,0,0.5);
-        --success: #a5d6a7; --success-bg: rgba(46, 125, 50, 0.4);
-        --warning: #ffb74d; --warning-bg: rgba(255, 152, 0, 0.2);
-        --danger: #ef9a9a; --danger-bg: rgba(198, 40, 40, 0.4);
-        --neutral: #eeeeee; --neutral-bg: rgba(117, 117, 117, 0.4);
-        --table-head-bg: #232f34; --table-row-hover: #2c3e50;
-        --acc-bg: #232f34; --flash-bg: #263238; --flash-border: #78909c;
+      /* REGRA DE OURO DA DATA: A DATA NUNCA pode quebrar a linha no celular */
+      #dailyTableBody td:nth-child(1) b {
+          white-space: nowrap !important; 
+      }
+      
+      #dailyTableBody td:nth-child(1)::before { content: "Data"; }
+      #dailyTableBody td:nth-child(2)::before { content: "Oficina"; }
+      #dailyTableBody td:nth-child(3)::before { content: "Item"; }
+      #dailyTableBody td:nth-child(4)::before { content: "Produção"; }
+      #dailyTableBody td:nth-child(5)::before { content: "Meta (Ref)"; }
+      #dailyTableBody td:nth-child(6)::before { content: "Status"; }
+      #dailyTableBody td:nth-child(7)::before { content: "Saída"; }
+      #dailyTableBody td:nth-child(8)::before { content: "Detalhes"; }
+      #dailyTableBody td:nth-child(9)::before { content: "Origem"; }
+
+      #stockTableBody td:nth-child(1)::before { content: "Item"; }
+      #stockTableBody td:nth-child(2)::before { content: "Entrada (Per)"; }
+      #stockTableBody td:nth-child(3)::before { content: "Saída (Per)"; }
+      #stockTableBody td:nth-child(4)::before { content: "Saldo (Per)"; }
+      #stockTableBody td:nth-child(5)::before { content: "Estoque HOJE"; }
+    
+      .stock-table tbody td > div { font-size: clamp(0.85rem, 1.8vw, 1.1rem) !important; }
+      .detalhes-celula { font-size: clamp(0.7rem, 1.5vw, 0.85rem) !important; text-align: right; }
+      
+      .dropdown-content { 
+          position: fixed !important;
+          top: 50% !important; 
+          left: 50% !important; 
+          transform: translate(-50%, -50%) !important;
+          width: 92vw !important;
+          max-width: none !important; 
+          max-height: 75vh !important; 
+          box-shadow: 0 10px 50px rgba(0,0,0,0.6) !important;
+          border-radius: 12px !important;
+          z-index: 9999 !important;
+      }
+      
+      .s1-check-row, .checkbox-item label {
+          display: grid !important;
+          grid-template-columns: 18px minmax(0, 1fr) !important;
+          gap: 10px !important;
+          width: 100% !important;
+          align-items: center !important;
+      }
+      
+      .s1-check-row span, .checkbox-item span, .checkbox-item label span {white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; display: block !important; font-size: 0.95rem !important; text-align: left !important;}}
+
+  html {font-size: clamp(12px, 1.2vw + 8px, 16px) !important;}
+
+  button, .theme-btn, .drop-btn, .fc-button, .summary-card, #calendar-wrapper, .modal-card {border-radius: 8px !important; transition: all 0.2s ease-in-out !important;}
+  
+  .theme-btn { padding: 0.8rem 1.2rem !important; }
+  .theme-btn:hover { background: var(--accent) !important; color: white !important; }
+  
+  .nav-item.active { background: #ffffff !important; color: var(--sidebar-bg) !important; box-shadow: none !important; border-left: none; }
+
+  /* ==================================================================== */
+  /* CORREÇÃO DO SLIDE 2: MANTÉM FORMATO DE BLOCOS LADO A LADO COM GRÁFICO */
+  /* ==================================================================== */
+  @media (max-width: 1199px) {
+      /* 1. Força a tela a ficar dividida: Lista na esquerda, Gráfico na direita */
+      #slide2 .chart-grid.grid-2 {
+          grid-template-columns: 1.2fr 1fr !important; 
+          gap: 10px !important;
+          align-items: flex-start !important;
       }
 
-      /* PREVENÇÃO ABSOLUTA DE VAZAMENTO HORIZONTAL */
-      html, body { 
-        background-color: var(--bg-color); color: var(--text-main); 
-        font-family: 'Poppins', 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; 
-        max-width: 100vw; overflow-x: hidden; margin: 0; padding: 0;
+      /* 2. Devolve a rolagem para a lista não ocupar a tela inteira para baixo */
+      #slide2 .stock-table-container {
+          height: 400px !important; 
+          max-height: 400px !important;
+          overflow-y: auto !important;
+          background: transparent !important;
       }
-      * { box-sizing: border-box; }
 
-      #loader { position: fixed; inset: 0; background: var(--bg-color); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; overflow: hidden; }
-      .spinner { width: 60px; height: 60px; border: 5px solid var(--border-color); border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; position: relative; z-index: 1; }
-      .loader-text { font-size: 1.3rem; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; position: relative; z-index: 1; }
-      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-      body.loaded #loader { opacity: 0; pointer-events: none; }
-
-      .layout-wrapper { display: flex; min-height: 100vh; position: relative; width: 100%; max-width: 100vw; overflow-x: hidden; }
-      
-      /* OVERLAY DO MENU MOBILE */
-      .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 90; backdrop-filter: blur(2px); }
-      .sidebar-overlay.show { display: block; }
-
-      .sidebar { width: 320px; position: fixed; left: 0; top: 0; bottom: 0; background: var(--sidebar-bg); border-right: 2px solid var(--border-color); display: flex; flex-direction: column; align-items: flex-start; padding-top: 25px; gap: 15px; z-index: 1000; box-shadow: 8px 0 20px rgba(0,0,0,0.15); overflow-x: hidden; white-space: nowrap; transition: left 0.3s; }
-      .nav-item { width: calc(100% - 30px); margin: 0 15px; height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: flex-start; padding-left: 12px; color: var(--text-muted); cursor: pointer; transition: 0.2s all ease; border: 2px solid transparent; }
-      .nav-item:hover { background: var(--input-bg); color: var(--accent); border-color: var(--border-color); }
-      .nav-item.active { background: var(--accent); color: var(--card-bg); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-      .nav-item .material-icons { font-size: 34px; min-width: 34px; } 
-      .nav-text { margin-left: 20px; font-size: 1.1rem; font-weight: 800; text-transform: uppercase; }
-
-      .main-content { flex: 1; overflow-y: auto; padding: 25px; position: relative; margin-left: 320px; width: calc(100vw - 320px); transition: margin-left 0.3s, width 0.3s; overflow-x: hidden; }
-      .top-bar { background: var(--card-bg); padding: 20px 25px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--shadow); margin-bottom: 25px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; }
-      .title-box { display: flex; align-items: center; gap: 10px; }
-      .title-box h1 { margin: 0; font-size: 1.8rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; } 
-      
-      /* Botão Mobile Menu */
-      #mobile-menu-btn { display: none; background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
-      
-      .date-filters { display: flex; gap: 10px; background: var(--input-bg); padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border-color); } 
-      .date-filters input { border: none; background: transparent; color: var(--text-main); outline: none; cursor: pointer; font-family: inherit; font-size: 1.05rem; font-weight: 600; width: 130px;} 
-      
-      .theme-btn { cursor: pointer; background: transparent; border: 2px solid var(--border-color); padding: 10px; border-radius: 10px; color: var(--text-muted); transition: 0.2s; display:flex; align-items:center; justify-content:center;}
-      .theme-btn:hover { background: var(--input-bg); color: var(--accent); border-color: var(--accent); }
-      .clock-display { font-size: 1.4rem; font-weight: 700; color: var(--accent); background: var(--input-bg); padding: 8px 16px; border-radius: 10px; border: 1px solid var(--border-color); letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
-
-      .slide { display: none; animation: fadeEffect 0.5s ease; }
-      .slide.active { display: block; }
-      @keyframes fadeEffect { from {opacity: 0; transform: translateY(15px);} to {opacity: 1; transform: translateY(0);} }
-
-      .slide-header { background: var(--card-bg); padding: 20px 25px; border-radius: 16px 16px 0 0; border-bottom: 4px solid var(--accent); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:15px; border: 1px solid var(--border-color); border-bottom-width: 4px; box-shadow: var(--shadow); }
-      .slide-title { font-size: 1.5rem; color: var(--text-main); font-weight: 800; display: flex; align-items: center; gap: 12px; text-transform: uppercase; } 
-      .slide-title .material-icons { color: var(--accent); font-size: 30px; }
-
-      .filter-wrapper { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; width: 100%; justify-content: flex-end;}
-      .filter-wrapper select, .filter-wrapper input { padding: 12px 14px; background-color: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 10px; min-width: 160px; font-family: inherit; font-size: 1rem; font-weight: 600; outline: none; flex: 1; }
-      select[multiple] { height: 50px; padding: 5px; overflow-y: auto; background-color: var(--input-bg); color: var(--text-main); }
-      
-      .chart-grid { display: grid; gap: 25px; }
-      .grid-2 { grid-template-columns: 2fr 1fr; }
-      .chart-card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; width: 100%;}
-
-      .stock-table-container { height: 500px; overflow-y: auto; width: 100%; overflow-x: auto;}
-      .stock-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
-      .stock-table th { background: var(--table-head-bg); color: var(--text-main); padding: 18px 15px; position: sticky; top: 0; z-index: 1; border-bottom: 2px solid var(--border-color); font-weight: 800; font-size: 0.95rem; text-transform: uppercase; }
-      .stock-table td { padding: 15px; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-size: 0.95rem; font-weight: 500; } 
-      .stock-table tr:hover td { background-color: var(--table-row-hover); }
-      
-      .badge-stock { padding: 6px 14px; border-radius: 20px; font-weight: 800; font-size: 0.95rem; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main); }
-      .status-text { font-weight: 800; font-size: 0.85rem; text-transform: uppercase; padding: 6px 10px; border-radius: 6px; letter-spacing: 0.5px; }
-      .st-ok { color: var(--success); background: var(--success-bg); border: 1px solid #a5d6a7; }
-      .st-bad { color: var(--danger); background: var(--danger-bg); border: 1px solid #ef9a9a; }
-      .st-none { color: var(--text-muted); font-weight: bold; }
-      .bs-pos { background: var(--success-bg); color: var(--success); border: 1px solid #a5d6a7; }
-      .bs-neg { background: var(--danger-bg); color: var(--danger); border: 1px solid #ef9a9a; }
-
-      .origem-badge { display: inline-flex; align-items: center; gap:4px; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; border: 1px solid;}
-      .ob-plan { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
-      .ob-bd { background-color: #cce5ff; color: #004085; border-color: #b8daff; }
-      .subgroup-text { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; display: block; border-top: 1px dashed var(--border-color); padding-top: 4px; margin-top: 4px;}
-
-      .flash-box { background: var(--flash-bg); border: 1px solid var(--border-color); border-left: 5px solid var(--flash-border); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: var(--shadow); }
-      .flash-header { font-weight: 800; font-size: 1.3rem; color: var(--text-main); margin-bottom: 18px; display:flex; align-items:center; gap:10px; text-transform: uppercase; } 
-      .flash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
-      
-      .new-card { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; position: relative; }
-      .new-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
-      .new-card-header { padding: 15px 20px; background: var(--accent-light); display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--border-color); }
-      .nc-titles { display: flex; flex-direction: column; }
-      .nc-oficina { font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
-      .nc-item { font-weight: 800; color: var(--text-main); font-size: 1.2rem; text-transform: uppercase; } 
-      .nc-internos { font-size: 0.9rem; color: var(--text-main); font-weight: 600; margin-top: 4px; }
-      
-      .nc-pill { padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-left: 10px; border: 1px solid transparent; }
-      .nc-pill.ok { background: var(--success-bg); color: var(--success); border-color: #a5d6a7; }
-      .nc-pill.fail { background: var(--danger-bg); color: var(--danger); border-color: #ef9a9a; }
-      .nc-pill.neutral { background: var(--neutral-bg); color: var(--text-main); border-color: #bdbdbd; }
-
-      .new-card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-      .nc-metrics { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; }
-      .nc-metric-group { display: flex; flex-direction: column; }
-      .nc-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-      .nc-big-val { font-size: 2.2rem; font-weight: 800; color: var(--text-main); line-height: 1.1; } 
-      .nc-sub-val { font-size: 1.1rem; font-weight: 700; color: var(--text-muted); }
-      .nc-perc { font-size: 1rem; font-weight: 800; }
-      .nc-perc.ok { color: var(--success); }
-      .nc-perc.fail { color: var(--danger); }
-
-      .nc-week-list { background: var(--input-bg); padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color); display: flex; flex-wrap: wrap; justify-content: space-between; }
-      .nc-day-col { display: flex; flex-direction: column; align-items: center; min-width: 40px; }
-      .nc-day-name { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; }
-      .nc-day-date { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
-      .nc-day-val { font-size: 1rem; font-weight: 800; }
-      
-      .nc-footer { border-top: 2px dashed var(--border-color); padding-top: 12px; margin-top: 5px; }
-      .nc-footer-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
-      .nc-footer-label { font-weight: 800; color: var(--text-muted); font-size: 0.8rem; }
-      .nc-footer-val { font-weight: 800; color: var(--text-main); font-size: 1.1rem; }
-
-      .nc-obs-panel { margin-top: 15px; padding: 12px 15px; background-color: var(--danger-bg); border: 2px solid var(--danger); border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: var(--danger); }
-      .nc-obs-panel.bd-info { background-color: #e3f2fd; border-color: #90caf9; color: #0d47a1; }
-
-      .goals-list { display: flex; flex-direction: column; gap: 18px; }
-      .goal-item { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transition: 0.2s; }
-      .goal-head { padding: 18px 25px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); }
-      .goal-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; background: var(--acc-bg); border-top: 2px solid var(--border-color); }
-      .goal-body.open { max-height: 800px; overflow-y: auto; }
-      .goal-row { display: flex; justify-content: space-between; padding: 15px 25px; border-bottom: 1px solid var(--border-color); font-size: 1rem; font-weight: 600;}
-      .gh-title { font-weight: 800; font-size: 1.2rem; text-transform: uppercase; }
-      .gh-badge { background: var(--input-bg); border: 2px solid var(--border-color); padding: 6px 14px; border-radius: 20px; font-size: 0.95rem; font-weight: 800; margin-left: 20px;}
-
-      /* =========================================
-         SUPER COMPACTAÇÃO E ADAPTAÇÃO PARA TABLETS E CELULARES
-         ========================================= */
-      @media (max-width: 1199px) { 
-          /* Sidebar Oculta */
-          .sidebar { left: -320px; }
-          .sidebar.open { left: 0; }
-          .main-content { margin-left: 0; width: 100vw; max-width: 100vw; padding: 10px; }
-
-          #mobile-menu-btn { display: block; }
-          .title-box h1 { font-size: 1.2rem; }
-          .clock-display { display: none; } /* Oculta relógio no mobile */
-          
-          .top-bar { padding: 15px; flex-direction: column; align-items: flex-start; }
-          .top-bar > div:last-child { width: 100%; justify-content: space-between; }
-          .date-filters { flex: 1; justify-content: space-between; }
-          .date-filters input { width: 100%; text-align: center; }
-
-          .slide-header { padding: 15px; }
-          .slide-title { font-size: 1.1rem; }
-          .slide-title .material-icons { font-size: 24px; }
-
-          .chart-grid.grid-2 { grid-template-columns: 1fr; }
-          .flash-grid { grid-template-columns: 1fr; }
-
-          /* TRANSFORMANDO TABELAS EM CARDS */
-          .stock-table-container { border: none !important; background: transparent; height: auto !important; max-height: none !important;}
-          .stock-table { display: block; width: 100%; border: none !important; }
-          .stock-table thead { display: none; }
-          
-          .stock-table tbody tr {
-              display: block; margin-bottom: 12px; background: var(--card-bg);
-              border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-              padding: 0; width: 100%;
-          }
-          
-          .stock-table tbody td {
-              display: flex; justify-content: space-between; align-items: flex-start; text-align: right;
-              padding: 8px 10px !important; border-bottom: 1px solid var(--border-color) !important; border-top: none;
-              gap: 10px; font-size: 0.8rem; width: 100%; overflow-wrap: anywhere; word-break: break-word;
-          }
-          .stock-table tbody td:last-child { border-bottom: none !important; }
-          
-          /* Injeta o nome da coluna no celular para Tabela Slide 1 */
-          #dailyTableBody td:nth-child(1)::before { content: "Data"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-          #dailyTableBody td:nth-child(2)::before { content: "Oficina"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-          #dailyTableBody td:nth-child(3)::before { content: "Item"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-          #dailyTableBody td:nth-child(4)::before { content: "Produção"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-          #dailyTableBody td:nth-child(5)::before { content: "Meta (Ref)"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-          #dailyTableBody td:nth-child(6)::before { content: "Status"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-          #dailyTableBody td:nth-child(7)::before { content: "Saída"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-          #dailyTableBody td:nth-child(8)::before { content: "Detalhes"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-          #dailyTableBody td:nth-child(9)::before { content: "Origem"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-
-          /* Injeta o nome da coluna no celular para Tabela Slide 2 */
-          #stockTableBody td:nth-child(1)::before { content: "Item"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-          #stockTableBody td:nth-child(2)::before { content: "Entrada (Per)"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-          #stockTableBody td:nth-child(3)::before { content: "Saída (Per)"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-          #stockTableBody td:nth-child(4)::before { content: "Saldo (Per)"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-          #stockTableBody td:nth-child(5)::before { content: "Estoque HOJE"; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); text-align: left; flex-shrink: 0; margin-right: 5px; }
-
-          .stock-table tbody td > * { flex-shrink: 1; min-width: 0; }
-          .detalhes-celula { text-align: right; }
+      /* 3. Mantém o seu arranjo de "blocos", apenas diminui as margens */
+      #slide2 .stock-table tbody tr {
+          margin-bottom: 10px !important;
+          border-radius: 12px !important;
       }
-    </style>
+
+      /* 4. MÁGICA DA FONTE: Reduz proporcionalmente as fontes e espaçamentos */
+      #slide2 .stock-table tbody td {
+          padding: 8px 10px !important;
+          font-size: clamp(0.65rem, 1.5vw, 0.8rem) !important;
+          gap: 5px !important;
+      }
+
+      /* 5. Reduz os rótulos à esquerda (Item, Entrada, Saída, etc.) */
+      #slide2 #stockTableBody td::before {
+          font-size: clamp(0.55rem, 1.2vw, 0.7rem) !important;
+      }
+
+      /* 6. Ajusta o tamanho da pílula colorida de estoque */
+      #slide2 .badge-stock {
+          padding: 4px 8px !important;
+          font-size: clamp(0.65rem, 1.5vw, 0.8rem) !important;
+      }
+
+      /* 7. Ajustes no card do gráfico para não esmagá-lo */
+      #slide2 .chart-card { padding: 10px !important; }
+      #chartTitle1 { font-size: 0.8rem !important; margin-bottom: 10px !important; }
+  }
+
+ /* ==================================================================== */
+  /* 1. CORREÇÃO DO CRONOGRAMA: BOTÕES NA TELA E DATA SEM QUEBRAR LINHA   */
+  /* ==================================================================== */
+  @media (max-width: 1199px) {
+      /* Reorganiza o cabeçalho para manter os botões lado a lado */
+      .fc-header-toolbar.fc-toolbar {
+          display: flex !important;
+          flex-wrap: wrap !important;
+          gap: 10px !important;
+          justify-content: center !important;
+      }
+      /* Anula a regra antiga (width: 100%) que empurrava os botões para fora */
+      .fc-toolbar-chunk {
+          width: auto !important; 
+          flex: 0 1 auto !important;
+          margin-bottom: 5px !important;
+      }
+      .fc-toolbar-title {
+          font-size: clamp(0.95rem, 3.5vw, 1.25rem) !important;
+          white-space: nowrap !important; 
+      }
+      .fc .fc-button {
+          padding: 6px 12px !important;
+          font-size: 0.75rem !important;
+      }
+  }
+
+  /* ========================================================= */
+  /* CSS DO ACCORDION DO ESTOQUE (SLIDE 2)                     */
+  /* ========================================================= */
+  .est-row-header { transition: background 0.2s; }
+  .est-row-header.clickable { cursor: pointer; }
+  .est-row-header.clickable:hover { background-color: var(--table-row-hover); }
+  .est-row-header.active { background-color: var(--input-bg); border-left: 4px solid var(--accent); }
+  
+  .est-row-details { display: none; background: var(--input-bg); }
+  .est-row-details.open { display: table-row; animation: fadeEffect 0.3s ease; }
+  
+  .est-details-wrapper { padding: 15px 25px 15px 40px; border-bottom: 1px solid var(--border-color); }
+  .est-sub-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .est-sub-table th { text-align: center; color: var(--text-muted); font-weight: 700; padding: 8px; border-bottom: 2px solid var(--border-color); text-transform: uppercase; }
+  .est-sub-table th:first-child { text-align: left; }
+  .est-sub-table td { text-align: center; padding: 10px 8px; border-bottom: 1px dashed var(--border-color); font-weight: 600; color: var(--text-main); }
+  .est-sub-table td:first-child { text-align: left; color: var(--text-muted); text-transform: uppercase; }
+  .est-sub-table tr:last-child td { border-bottom: none; }
+
+  /* PROTEÇÃO DE RESPONSIVIDADE NO MOBILE (CELULAR) */
+  @media (max-width: 1199px) {
+
+      .est-row-details { display: none !important; }
+      
+      .est-row-details.open { display: flex !important; flex-direction: column; width: 100%; }
+      .est-row-details > td { padding: 0 !important; border: none !important; display: block; width: 100%; }
+      .est-details-wrapper { padding: 10px !important; margin: 0 15px 15px 15px; border-radius: 12px; background: var(--bg-color); border: 1px dashed var(--border-color); }
+      
+      .est-sub-table, .est-sub-table tbody { display: block; width: 100%; }
+      .est-sub-table thead { display: none; }
+      .est-sub-table tr { display: flex; flex-direction: column; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+      .est-sub-table tr:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+      .est-sub-table td { display: flex; justify-content: space-between; align-items: center; text-align: right !important; padding: 6px 0 !important; border: none !important; }
+      
+      .est-sub-table td:nth-child(1)::before { content: "Subcategoria"; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+      .est-sub-table td:nth-child(2)::before { content: "Entrada (Per)"; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+      .est-sub-table td:nth-child(3)::before { content: "Saída (Per)"; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+      .est-sub-table td:nth-child(4)::before { content: "Saldo (Per)"; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+      .est-sub-table td:nth-child(5)::before { content: "Estoque Final"; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+  }
+  
+</style>
   </head>
   <body>
 
-    <!-- MARCA D'ÁGUA DE FUNDO -->
     <div id="loader">
-      <img src="/images/logo.png" alt="Background Logo" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; height: 90vh; object-fit: contain; opacity: 0.08; pointer-events: none; z-index: 0;">
-      <div class="spinner"></div>
-      <div class="loader-text">CARREGANDO DADOS...</div>
+      <div class="logo-loader-container">
+        <!-- Logo de fundo (opaca/apagada) -->
+        <img src="/images/logo_colorido.png" alt="Logo Fundo" class="logo-base">
+        <!-- Logo que vai encher (colorida) -->
+        <img src="/images/logo_colorido.png" alt="Logo Animada" class="logo-fill">
+      </div>
+      <div class="loader-text" style="margin-top: 20px;">CARREGANDO DADOS...</div>
     </div>
+
+    <style>
+      /* CSS EXCLUSIVO DO LOADER */
+      .logo-loader-container { position: relative; width: 140px; height: 140px; }
+      .logo-base { 
+          position: absolute; width: 100%; height: 100%; object-fit: contain; 
+          opacity: 0.15; filter: grayscale(100%); 
+      }
+      .logo-fill { 
+          position: absolute; width: 100%; height: 100%; object-fit: contain; 
+          /* Faz a animação durar 1.5s, ir e voltar infinitamente */
+          animation: fillLogo 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate; 
+          clip-path: inset(100% 0 0 0); /* Começa 100% cortada (invisível) */
+      }
+      
+      @keyframes fillLogo { 
+          0% { clip-path: inset(100% 0 0 0); } 
+          100% { clip-path: inset(0 0 0 0); } /* Termina totalmente visível */
+      }
+    </style>
 
     <div class="layout-wrapper">
       <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
       
       <div class="sidebar" id="sidebar">
+        <!-- AQUI FOI ALTERADO: O tamanho da imagem da logo foi dobrado -->
         <div style="width: 100%; display: flex; justify-content: center; align-items: center; padding-bottom: 20px; margin-bottom: 5px; border-bottom: 1px solid var(--border-color);">
            <img src="/images/logo.png" alt="Logo" style="height: 100px; max-width: 85%; object-fit: contain;">
         </div>
 
-        <div class="nav-item active" onclick="currentSlide(1)" title="Diário de Produção"><span class="material-icons">history_edu</span><span class="nav-text">DIÁRIO</span></div>
-        <div class="nav-item" onclick="currentSlide(2)" title="Estoque Geral"><span class="material-icons">warehouse</span><span class="nav-text">ESTOQUE</span></div>
-        <div class="nav-item" onclick="currentSlide(3)" title="Análise do Item"><span class="material-icons">query_stats</span><span class="nav-text">ANÁLISE</span></div>
-        <div class="nav-item" onclick="currentSlide(4)" title="Metas Detalhadas"><span class="material-icons">track_changes</span><span class="nav-text">METAS</span></div>
-        <div class="nav-item" onclick="currentSlide(5)" title="Controle de Processos"><span class="material-icons">assignment</span><span class="nav-text">PROCESSOS</span></div>
-        <div class="nav-item" onclick="currentSlide(6)" title="Cronograma"><span class="material-icons">calendar_month</span><span class="nav-text">CRONOGRAMA</span></div>
-        <div class="nav-item" onclick="currentSlide(7)" title="Produção por Oficina"><span class="material-icons">stacked_line_chart</span><span class="nav-text">PROD. OFICINA</span></div>
-      </div>
-
+       <div class="nav-item active" onclick="currentSlide(1)" title="Diário de Produção"><span class="material-icons">dashboard</span><span class="nav-text">DIÁRIO</span></div>
+       <div class="nav-item" onclick="currentSlide(2)" title="Estoque Geral"><span class="material-icons">warehouse</span><span class="nav-text">ESTOQUE</span></div>
+       <div class="nav-item" onclick="currentSlide(3)" title="Análise do Item"><span class="material-icons">query_stats</span><span class="nav-text">ANÁLISE</span></div>
+       <div class="nav-item" onclick="currentSlide(4)" title="Metas Detalhadas"><span class="material-icons">track_changes</span><span class="nav-text">METAS</span></div>
+       <div class="nav-item" onclick="currentSlide(5)" title="Controle de Processos"><span class="material-icons">assignment</span><span class="nav-text">PROCESSOS</span></div>
+       <div class="nav-item" onclick="currentSlide(6)" title="Cronograma"><span class="material-icons">calendar_month</span><span class="nav-text">CRONOGRAMA</span></div>
+       <div class="nav-item" onclick="currentSlide(7)" title="Produção por Oficina"><span class="material-icons">stacked_line_chart</span><span class="nav-text">OFICINAS</span></div>
+       
+       <!-- NOVO BOTÃO ADICIONADO AQUI -->
+       <a href="https://maroon-kingfisher-471984.hostingersite.com/" class="nav-item" title="Acessar Sistema">
+           <span class="material-icons">login</span><span class="nav-text">ACESSAR SISTEMA</span>
+       </a>
+</div>
+    
+    <div>
       <div class="main-content">
         <div class="top-bar">
           <div class="title-box">
@@ -272,45 +647,81 @@
             <h1>DASHBOARD - SERRALHERIA</h1>
           </div>
           <div style="display:flex; gap:15px; align-items:center; width: 100%; justify-content: flex-end;">
-            <button class="theme-btn" onclick="refreshDashboard()" title="Atualizar Dados" style="font-weight: 700; color: var(--accent);"><span class="material-icons" style="margin-right: 5px;">sync</span></button>
+            <button class="theme-btn" onclick="refreshDashboard()" title="Atualizar Dados" style="font-weight: 700; color: var(--accent);"><span class="material-icons" style="margin-right: 5px;">sync</span> ATUALIZAR</button>
             <div class="date-filters"><input type="date" id="dateStart" onchange="updateAll()"><input type="date" id="dateEnd" onchange="updateAll()"></div>
-            <div class="clock-display" title="Hora atual"><span class="material-icons" style="font-size:22px;">schedule</span><span id="realtimeClock">--:--:--</span></div>
+            <div class="clock-display" title="Hora atual"><span class="material-icons" style="font-size:22px;">schedule</span><span id="realtimeClock" style="font-variant-numeric: tabular-nums; min-width: 80px; text-align: center; display: inline-block;">--:--:--</span></div>
             <button class="theme-btn" onclick="toggleTheme()" title="Alternar Modo Noturno"><span class="material-icons" id="themeIcon">dark_mode</span></button>
           </div>
         </div>
 
-        <!-- SLIDE 1 -->
+       <!-- SLIDE 1: DIÁRIO E RESUMO UNIFICADOS -->
         <div class="slide fade active" id="slide1">
           <div class="slide-header">
-            <div class="slide-title"><span class="material-icons">history_edu</span> DIÁRIO DE PRODUÇÃO</div>
+            <div class="slide-title"><span class="material-icons">history_edu</span> DIÁRIO E RESUMO</div>
             <div class="filter-wrapper">
-               <input type="date" id="filterDateSpecific" onchange="renderSlide1()" title="Selecione um dia específico para ver os cards">
+              <input type="date" id="filterDateSpecific" onchange="renderSlide1()" title="Selecione um dia específico para ver os cards">
               <select id="filterObsOficina" onchange="updateSlide1Items()"><option value="Todas">TODAS OFICINAS</option></select>
-              <select id="filterObsItem" multiple size="1" onchange="renderSlide1()" style="min-width: 200px;" title="Segure Ctrl para vários"><option value="Todos" selected>TODOS ITENS</option></select>
+              
+              <div class="custom-dropdown" id="dd-filterItem" style="flex: 1; min-width: 200px;">
+                <button class="drop-btn" onclick="toggleItemDropdown()" id="btn-filterItem">TODOS ITENS <span class="material-icons" style="font-size:18px">arrow_drop_down</span></button>
+                <div class="dropdown-content" id="content-filterItem" style="max-height: 400px; padding: 15px;"></div>
+              </div>
+              
               <input type="text" id="filterObs" placeholder="BUSCAR TEXTO..." onkeyup="debounceSearch()">
             </div>
           </div>
-          <div style="font-size:0.85em; font-weight:600; color:var(--text-muted); margin-bottom:15px; margin-left:25px; display:flex; gap:15px; align-items:center;">
-              <span><span class="origem-badge ob-plan">PLANILHA ⚠️</span> = Dados até 12/06</span>
-              <span><span class="origem-badge ob-bd">BANCO</span> = Sistema</span>
+          
+          <!-- Quadro de Alerta Destacado -->
+          <div class="alert-info-box">
+              <div class="alert-title"><span class="material-icons">info</span> ATENÇÃO À ORIGEM DOS DADOS</div>
+              <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.95rem; color: var(--text-main);">
+                  <span><span class="origem-badge ob-plan" style="border: 1px solid currentColor;">PLANILHA ⚠️</span> = <b>Registros inseridos na planilha antiga (dados até 12/06).</b></span>
+                  <span><span class="origem-badge ob-bd" style="border: 1px solid currentColor;">BANCO</span> = <b>Registros inseridos e validados no novo sistema web.</b></span>
+              </div>
           </div>
+          
+          <!-- Cards do Resumo do Último Dia -->
           <div id="flashReportContainer"></div>
-          <div class="chart-card"><div class="stock-table-container"><table class="stock-table" id="dailyTableBody"></table></div></div>
+          
+          <!-- Tabela do Diário de Produção (De volta ao lugar!) -->
+          <div class="chart-card" style="margin-top: 20px;">
+            <div class="stock-table-container">
+              <table class="stock-table" id="dailyTableBody"></table>
+            </div>
+          </div>
         </div>
 
-        <!-- SLIDE 2 -->
+       <!-- SLIDE 2: ESTOQUE GERAL -->
         <div class="slide fade" id="slide2" style="display: none;">
           <div class="slide-header">
             <div class="slide-title"><span class="material-icons">warehouse</span> LISTA DE ESTOQUE</div>
-            <div class="filter-wrapper"><select id="selOficina" onchange="renderSlide2()"><option value="Todas">TODAS AS OFICINAS</option></select></div>
+            <div class="filter-wrapper">
+              <select id="selOficina" onchange="renderSlide2()"><option value="Todas">TODAS AS OFICINAS</option></select>
+            </div>
           </div>
           <div class="chart-grid grid-2">
             <div class="chart-card"><div class="stock-table-container"><table class="stock-table" id="stockTableBody"></table></div></div>
-            <div class="chart-card" style="padding: 25px;"><div id="chartTitle1" style="text-align:center; margin-bottom:20px; font-weight:800; font-size:1.1rem;">VOLUME NO PERÍODO</div><div id="chart_efficiency" style="height: 400px; width: 100%;"></div></div>
+            
+            <!-- CARD DO GRÁFICO MODERNIZADO -->
+            <div class="chart-card" style="padding: 30px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                 <div>
+                    <h3 style="margin: 0; font-size: 1.4rem; font-weight: 800; color: var(--text-main);">Volume de Produção</h3>
+                    <p id="chartTitle1" style="margin: 5px 0 15px 0; font-size: 0.9rem; color: var(--text-muted);"></p>
+                    
+                    <!-- Legenda Customizada em Bolinhas -->
+                    <div style="display: flex; gap: 15px; font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+                       <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; background-color: #10B981; border-radius: 50%;"></span> Produzido</div>
+                       <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; background-color: #064E3B; border-radius: 50%;"></span> Entregue</div>
+                    </div>
+                 </div>
+              </div>
+              <div id="chart_efficiency" style="height: 350px; width: 100%;"></div>
+            </div>
           </div>
         </div>
 
-        <!-- SLIDE 3 -->
+        <!-- SLIDE 3: ANÁLISE DO ITEM -->
         <div class="slide fade" id="slide3" style="display: none;">
           <div class="slide-header">
             <div class="slide-title"><span class="material-icons">query_stats</span> ANÁLISE DO ITEM <span id="headerStockBadge" class="header-stock-badge"></span></div>
@@ -330,7 +741,7 @@
           <div id="goalsAccordion" class="goals-list" style="padding:15px;"></div>
         </div>
 
-        <!-- INCLUDES DOS DEMAIS SLIDES -->
+        <!-- SLIDE 5 e 6: INCLUDES -->
         <%- include('partials/processos') %>
         <%- include('partials/cronograma') %>
         <%- include('partials/producao_oficina') %>
@@ -357,6 +768,8 @@
         { name: "CADEIRA GIRATÓRIA", keywords: ["GIRATORIA", "GIRATÓRIA"], target: 30, type: "day", label: "30/dia" },
         { name: "CADEIRA OTELLO", keywords: ["OTELLO"], target: 30, type: "day", label: "30/dia" }
       ];
+
+      
 
       // --- FUNÇÃO PARA ABRIR/FECHAR MENU MOBILE ---
       window.toggleSidebar = function() {
@@ -468,7 +881,7 @@
           const map = {};
           rawData.forEach(row => {
               const normItem = normalizeItemName(row.item);
-              const key = `${row.data}|${row.oficina}\vert{}${normItem}`;
+              const key = `${row.data}|${row.oficina}\\vert{}${normItem}`;
               if (!map[key]) {
                   map[key] = {
                       data: row.data, dateObj: row.dateObj, oficina: row.oficina, item: normItem,
@@ -503,29 +916,71 @@
       }
 
       function getChartOptions() {
-        const tc = isDarkMode ? '#ffffff' : '#222222'; const gc = isDarkMode ? '#455a64' : '#cfd8dc';
-        return { backgroundColor: { fill: 'transparent' }, titleTextStyle: { color: tc, fontSize: 16, fontName: 'Inter', bold: true }, hAxis: { textStyle: { color: tc, fontName: 'Inter', bold: true }, gridlines: { color: gc }, slantedText: true, slantedTextAngle: 90 }, vAxis: { textStyle: { color: tc, fontName: 'Inter', bold: true }, gridlines: { color: gc }, viewWindow: { min: 0 } }, legend: { textStyle: { color: tc, fontName: 'Inter', bold: true }, position: 'top' }, annotations: { textStyle: { color: tc, fontSize: 13, fontName: 'Inter', bold: true, auraColor: 'transparent' }, alwaysOutside: true, stem: { color: 'transparent' } }, chartArea: {width: '80%', height: '70%'} };
+        // Cores de texto e grade adaptadas ao tema
+        const tc = isDarkMode ? '#ffffff' : '#2b3641'; 
+        const gc = isDarkMode ? '#37474f' : '#e0e0e0';
+        
+        // Cores chamativas exclusivas para os números (annotations)
+        const numColor = isDarkMode ? '#ffb300' : '#d35400'; 
+        const aura = isDarkMode ? '#1c2126' : '#ffffff';
+
+        return { 
+          backgroundColor: { fill: 'transparent' }, 
+          // Títulos maiores e com a fonte principal do painel
+          titleTextStyle: { color: tc, fontSize: 18, fontName: 'Poppins', bold: true }, 
+          
+          hAxis: { 
+            textStyle: { color: tc, fontName: 'Poppins', bold: true, fontSize: 12 }, 
+            gridlines: { color: gc, count: -1 }, 
+            slantedText: true, slantedTextAngle: 45 // Inclinação suave para não encavalar textos
+          }, 
+          vAxis: { 
+            textStyle: { color: tc, fontName: 'Poppins', bold: true, fontSize: 12 }, 
+            gridlines: { color: gc, minSpacing: 40 },
+            minValue: 0, 
+            viewWindow: { min: 0 }
+          }, 
+          legend: { 
+            textStyle: { color: tc, fontName: 'Poppins', bold: true, fontSize: 13 }, 
+            position: 'top', 
+            alignment: 'center' 
+          }, 
+          
+          // NÚMEROS MAIS CHAMATIVOS: Maior tamanho, cor de destaque e "aura" para não misturar com as linhas
+          annotations: { 
+            textStyle: { color: numColor, fontSize: 15, fontName: 'Poppins', bold: true, auraColor: aura }, 
+            alwaysOutside: true, 
+            stem: { color: 'transparent' } 
+          }, 
+          
+          chartArea: {width: '85%', height: '65%'},
+          
+          // DEIXA BARRAS MAIS ESPESSAS
+          bar: { groupWidth: '65%' }, 
+          
+          // TIRA O ASPECTO CHAPADO: Adiciona uma animação suave ao carregar os dados
+          animation: { startup: true, duration: 800, easing: 'out' } 
+        };
       }
 
       function currentSlide(n) { 
-          document.getElementById("slide5").style.display = "none";
-          document.getElementById("slide6").style.display = "none";
+          // Oculta todas antes de mostrar para evitar bugs
+          document.querySelectorAll('.slide').forEach(s => s.style.display = 'none');
           showSlides(slideIndex = n); 
       }
       
       function showSlides(n) {
-        let slides = document.getElementsByClassName("slide"); 
+        let slides = Array.from(document.getElementsByClassName("slide")); 
         let navItems = document.getElementsByClassName("nav-item");
+        
         if (n > slides.length) slideIndex = 1; 
         if (n < 1) slideIndex = slides.length;
         
-        for (let i=0; i<slides.length; i++) { 
-            slides[i].style.display = "none"; 
-            slides[i].classList.remove("active"); 
-            if(navItems[i]) navItems[i].classList.remove("active"); 
-        }
+        slides.forEach(s => { s.style.display = "none"; s.classList.remove("active"); });
+        Array.from(navItems).forEach(ni => ni.classList.remove("active"));
         
-        const targetSlide = document.getElementById('slide' + slideIndex);
+        // Pega o slide correspondente pela ordem (Array) e não pelo ID
+        const targetSlide = slides[slideIndex - 1]; 
         if (targetSlide) {
             targetSlide.style.display = "block";
             setTimeout(() => targetSlide.classList.add("active"), 10); 
@@ -546,7 +1001,6 @@
         if (slideIndex === 3) renderSlide3(); 
         if (slideIndex === 4) renderSlide4(); 
         if (slideIndex === 6 && typeof initCronograma === 'function') { setTimeout(() => { initCronograma(); }, 150); }
-        if (slideIndex === 7 && typeof renderSlide7 === 'function') renderSlide7();
       }
 
       function getFilterDate(id, isEnd) {
@@ -557,6 +1011,7 @@
 
       function populateFilters() {
         const oficinasGroup = [...new Set(groupedData.map(r => r.oficina))].filter(Boolean).sort();
+        // A lista de itens agora é mesclada com a lista dos itens da base de dados (mesmo se não tiverem produção).
         const itensGroup = [...new Set([
             ...groupedData.map(r => r.item.toUpperCase()), 
             ...GOAL_RULES.map(r => r.name.toUpperCase())
@@ -564,38 +1019,55 @@
         
         const selOf = document.getElementById('selOficina'); selOf.innerHTML = '<option value="Todas">TODAS AS OFICINAS</option>';
         const filterObsOf = document.getElementById('filterObsOficina'); filterObsOf.innerHTML = '<option value="Todas">TODAS OFICINAS</option>';
-        const selOficinaSlide7 = document.getElementById('selOficinaSlide7'); 
+        oficinasGroup.forEach(o => { selOf.add(new Option(o.toUpperCase(),o)); filterObsOf.add(new Option(o.toUpperCase(),o)); });
+        const selItem = document.getElementById('selItem'); 
+        selItem.innerHTML = '<option value="" disabled selected>SELECIONE UM ITEM...</option>';
+        // Mantém a alimentação do filtro do Slide 3:
+        itensGroup.forEach((i) => { selItem.add(new Option(i, i)); });
         
-        if (selOficinaSlide7) {
-            selOficinaSlide7.innerHTML = '<option value="Todas" disabled selected>SELECIONE A OFICINA</option>';
+        // Alimenta o NOVO menu suspenso do Slide 1:
+        const content = document.getElementById('content-filterItem');
+        if (content) {
+            let html = `<label class="s1-check-row"><input type="checkbox" value="Todos" onchange="handleSlide1ItemCheck(this)" checked> <span style="font-weight: bold;">TODOS OS ITENS</span></label>`;
+            itensGroup.forEach(i => { 
+               html += `<label class="s1-check-row"><input type="checkbox" class="s1-item-cb" value="${i}" onchange="handleSlide1ItemCheck(this)"> <span>${i}</span></label>`; 
+            });
+            content.innerHTML = html;
         }
-        
-        oficinasGroup.forEach(o => { 
-            selOf.add(new Option(o.toUpperCase(),o)); 
-            filterObsOf.add(new Option(o.toUpperCase(),o)); 
-            if (selOficinaSlide7) selOficinaSlide7.add(new Option(o.toUpperCase(),o));
-        });
 
-        const selItem = document.getElementById('selItem'); selItem.innerHTML = '<option value="" disabled selected>SELECIONE UM ITEM...</option>';
-        const filterObsItem = document.getElementById('filterObsItem'); filterObsItem.innerHTML = '<option value="Todos" selected>TODOS ITENS</option>';
-        itensGroup.forEach((i) => { selItem.add(new Option(i, i)); filterObsItem.add(new Option(i, i)); });
+        if (typeof initSlide7Filters === 'function') initSlide7Filters();
       }
 
       function updateSlide1Items() {
-         const oficina = document.getElementById('filterObsOficina').value; const itemSelect = document.getElementById('filterObsItem');
-         itemSelect.innerHTML = '<option value="Todos" selected>TODOS ITENS</option>';
+         const oficina = document.getElementById('filterObsOficina').value; 
+         const content = document.getElementById('content-filterItem');
+         
          const items = [...new Set([
              ...groupedData.filter(r => oficina === "Todas" || r.oficina === oficina).map(r => r.item.toUpperCase()),
              ...GOAL_RULES.map(r => r.name.toUpperCase())
          ])].sort();
-         items.forEach(i => { itemSelect.add(new Option(i, i)); }); renderSlide1();
+         
+         let html = `<label class="s1-check-row"><input type="checkbox" value="Todos" onchange="handleSlide1ItemCheck(this)" checked> <span style="font-weight: bold;">TODOS OS ITENS</span></label>`;
+         items.forEach(i => { 
+             html += `<label class="s1-check-row"><input type="checkbox" class="s1-item-cb" value="${i}" onchange="handleSlide1ItemCheck(this)"> <span>${i}</span></label>`; 
+         });
+         
+         if (content) content.innerHTML = html;
+         
+         if (typeof updateSlide1ItemButtonText === 'function') {
+             updateSlide1ItemButtonText();
+         }
+         renderSlide1();
       }
 
       function renderSlide1() {
         const dStart = getFilterDate('dateStart', false); const dEnd = getFilterDate('dateEnd', true);
         const filterOf = document.getElementById('filterObsOficina').value; const textFilter = document.getElementById('filterObs').value.toLowerCase();
-        const selItemOptions = document.getElementById('filterObsItem').selectedOptions; const selectedItems = Array.from(selItemOptions).map(o => o.value);
-        const isAllItems = selectedItems.length === 0 || selectedItems.includes('Todos');
+        
+        const allCb = document.querySelector('#content-filterItem input[value="Todos"]');
+        const isAllItems = allCb ? allCb.checked : true;
+        const selectedItems = Array.from(document.querySelectorAll('.s1-item-cb:checked')).map(cb => cb.value);
+
         const specificDateVal = document.getElementById('filterDateSpecific').value;
         let specificDateStr = ""; if (specificDateVal) { const p = specificDateVal.split('-'); specificDateStr = `${p[2]}/${p[1]}/${p[0]}`; }
 
@@ -739,9 +1211,12 @@
         document.getElementById('dailyTableBody').innerHTML = html;
       }
 
-      function renderSlide2() {
-        const selOficina = document.getElementById('selOficina').value; const dStart = getFilterDate('dateStart', false); const dEnd = getFilterDate('dateEnd', true);
+function renderSlide2() {
+        const selOficina = document.getElementById('selOficina').value; 
+        const dStart = getFilterDate('dateStart', false); 
+        const dEnd = getFilterDate('dateEnd', true);
         const hasFilter = dStart || dEnd;
+        
         const filtered = rawData.filter(r => {
            if (selOficina !== "Todas" && r.oficina !== selOficina) return false;
            if (dStart && r.dateObj < dStart) return false;
@@ -749,10 +1224,18 @@
            if (!hasFilter && r.origem === 'PLANILHA') return false; 
            return true;
         });
-        let minD = null, maxD = null; if(filtered.length > 0) { minD = new Date(Math.min(...filtered.map(r=>r.dateObj))); maxD = new Date(Math.max(...filtered.map(r=>r.dateObj))); }
-        document.getElementById('chartTitle1').innerText = `VOLUME NO PERÍODO: ${(minD && maxD) ? `${fmtDate(minD)} até ${fmtDate(maxD)}` : "SEM DADOS"}`;
+        
+        let minD = null, maxD = null; 
+        if(filtered.length > 0) { 
+            minD = new Date(Math.min(...filtered.map(r=>r.dateObj))); 
+            maxD = new Date(Math.max(...filtered.map(r=>r.dateObj))); 
+        }
+        
+        document.getElementById('chartTitle1').innerText = (minD && maxD) ? `Acompanhamento de ${fmtDate(minD)} até ${fmtDate(maxD)}` : "Sem dados no período";
 
-        const stockMap = {}, periodMap = {}; const stockSubMap = {}, periodSubPMap = {}, periodSubSMap = {}; let totalProd=0, totalSaida=0;
+        const stockMap = {}, periodMap = {}; 
+        const stockSubMap = {}, periodSubPMap = {}, periodSubSMap = {}; 
+        let totalProd=0, totalSaida=0;
         
         rawData.forEach(r => { 
            if (selOficina !== "Todas" && r.oficina !== selOficina) return; 
@@ -760,30 +1243,167 @@
            if(!stockMap[r.item]) { stockMap[r.item]=0; stockSubMap[r.item]={}; }
            stockMap[r.item] += (r.producao - r.saida); 
            sumSubgroups(stockSubMap[r.item], r.subgrupos_producao);
-           if(r.subgrupos_saida) { Object.keys(r.subgrupos_saida).forEach(k => { stockSubMap[r.item][k] = (stockSubMap[r.item][k] || 0) - Number(r.subgrupos_saida[k]); }); }
+           if(r.subgrupos_saida) { 
+               Object.keys(r.subgrupos_saida).forEach(k => { 
+                   stockSubMap[r.item][k] = (stockSubMap[r.item][k] || 0) - Number(r.subgrupos_saida[k]); 
+               }); 
+           }
         });
+        
         filtered.forEach(r => { 
            if(!periodMap[r.item]) { periodMap[r.item]={p:0, s:0}; periodSubPMap[r.item]={}; periodSubSMap[r.item]={}; } 
-           periodMap[r.item].p += r.producao; periodMap[r.item].s += r.saida; totalProd += r.producao; totalSaida += r.saida; 
-           sumSubgroups(periodSubPMap[r.item], r.subgrupos_producao); sumSubgroups(periodSubSMap[r.item], r.subgrupos_saida);
+           periodMap[r.item].p += r.producao; 
+           periodMap[r.item].s += r.saida; 
+           totalProd += r.producao; 
+           totalSaida += r.saida; 
+           sumSubgroups(periodSubPMap[r.item], r.subgrupos_producao); 
+           sumSubgroups(periodSubSMap[r.item], r.subgrupos_saida);
         });
 
         const allItems = [...new Set([...Object.keys(periodMap), ...Object.keys(stockMap)])].sort((a,b) => (stockMap[b]||0) - (stockMap[a]||0));
         let html = `<thead><tr><th>Item</th><th>Entrada (Per)</th><th>Saída (Per)</th><th>Saldo (Per)</th><th>Estoque HOJE</th></tr></thead><tbody>`;
+        
         allItems.forEach((item, idx) => {
-           const p = periodMap[item] || {p:0, s:0}; const s = stockMap[item] || 0; const saldo = p.p - p.s;
-           let pSubHtml = formatSubgroups(periodSubPMap[item]); let sSubHtml = formatSubgroups(periodSubSMap[item]); let stockSubHtml = formatSubgroups(stockSubMap[item]);
-           html += `<tr><td data-label="Item" style="text-transform: uppercase;"><b>${idx+1}. ${item}</b></td><td data-label="Entrada (Per)" style="font-weight:700;">${p.p}${pSubHtml?`<span class="subgroup-text" style="border:none; padding:0;">${pSubHtml}</span>`:''}</td><td data-label="Saída (Per)" style="font-weight:700;">${p.s}${sSubHtml?`<span class="subgroup-text" style="border:none; padding:0;">${sSubHtml}</span>`:''}</td><td data-label="Saldo (Per)" style="font-weight:800; font-size:1.1rem; color:${saldo>=0?'var(--success)':'var(--danger)'}">${saldo}</td><td data-label="Estoque HOJE"><span class="badge-stock ${s >= 0 ? 'bs-pos' : 'bs-neg'}">${s}</span>${stockSubHtml?`<span class="subgroup-text" style="border:none; padding:0;">${stockSubHtml}</span>`:''}</td></tr>`;
+           const p = periodMap[item] || {p:0, s:0}; 
+           const s = stockMap[item] || 0; 
+           const saldo = p.p - p.s;
+           
+           // Extrai os objetos de subgrupos desse item específico
+           const subP = periodSubPMap[item] || {};
+           const subS = periodSubSMap[item] || {};
+           const subSt = stockSubMap[item] || {};
+           
+           // Levanta o nome de todas as subcategorias que tem valor maior que 0
+           const allSubKeys = [...new Set([...Object.keys(subP), ...Object.keys(subS), ...Object.keys(subSt)])].filter(k => subP[k] || subS[k] || subSt[k]);
+           const hasSubs = allSubKeys.length > 0;
+
+           const clickAttr = hasSubs ? `onclick="toggleEstoqueRow(${idx})"` : '';
+           const iconHtml = hasSubs ? `<span class="material-icons" id="est-icon-${idx}" style="font-size:22px; color:var(--accent); margin-left:10px; vertical-align: middle;">expand_more</span>` : '';
+           
+           // LINHA PRINCIPAL VISÍVEL (Com os Totais Limpos)
+           html += `<tr class="est-row-header ${hasSubs ? 'clickable' : ''}" id="est-head-${idx}" ${clickAttr}>
+              <td data-label="Item" style="text-transform: uppercase;">
+                 <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <b>${idx+1}. ${item}</b>
+                    ${iconHtml}
+                 </div>
+              </td>
+              <td data-label="Entrada (Per)">
+                 <div style="font-weight:700; font-size:1.1rem; color: var(--text-main);">${p.p}</div>
+              </td>
+              <td data-label="Saída (Per)">
+                 <div style="font-weight:700; font-size:1.1rem; color: var(--text-main);">${p.s}</div>
+              </td>
+              <td data-label="Saldo (Per)">
+                 <div style="font-weight:800; font-size:1.1rem; color:${saldo>=0?'var(--success)':'var(--danger)'}">${saldo}</div>
+              </td>
+              <td data-label="Estoque HOJE">
+                 <span class="badge-stock ${s >= 0 ? 'bs-pos' : 'bs-neg'}">${s}</span>
+              </td>
+           </tr>`;
+
+           // LINHA OCULTA (Subtabela que abrirá ao clicar)
+           if (hasSubs) {
+               let subsRows = '';
+               allSubKeys.sort().forEach(k => {
+                   const valP = subP[k] || 0;
+                   const valS = subS[k] || 0;
+                   const valSaldo = valP - valS;
+                   const valSt = subSt[k] || 0;
+
+                   subsRows += `
+                   <tr>
+                       <td>${k}</td>
+                       <td>${valP}</td>
+                       <td>${valS}</td>
+                       <td style="color:${valSaldo>=0?'var(--success)':'var(--danger)'}">${valSaldo}</td>
+                       <td><span class="badge-stock ${valSt >= 0 ? 'bs-pos' : 'bs-neg'}" style="padding: 2px 6px; font-size: 0.75rem;">${valSt}</span></td>
+                   </tr>`;
+               });
+
+               html += `
+               <tr class="est-row-details" id="est-det-${idx}">
+                   <td colspan="5" style="padding: 0;">
+                       <div class="est-details-wrapper">
+                           <table class="est-sub-table">
+                               <thead>
+                                   <tr><th>Subcategoria</th><th>Entrada (Per)</th><th>Saída (Per)</th><th>Saldo (Per)</th><th>Estoque Final</th></tr>
+                               </thead>
+                               <tbody>
+                                   ${subsRows}
+                               </tbody>
+                           </table>
+                       </div>
+                   </td>
+               </tr>`;
+           }
         });
         document.getElementById('stockTableBody').innerHTML = html;
-        new google.visualization.ColumnChart(document.getElementById('chart_efficiency')).draw(google.visualization.arrayToDataTable([['Tipo','Qtd',{role:'style'},{role:'annotation'}], ['PRODUZIDO',totalProd,'#3498db',totalProd], ['ENTREGUE',totalSaida,'#27ae60',totalSaida]]), {...getChartOptions(), legend:'none'});
+
+        // GRÁFICO MODERNIZADO: Eixo Y visível (left:60), formato 'K' e barras de pílula mantidos
+        const colorProd = '#10B981'; 
+        const colorSaida = '#064E3B'; 
+
+        const dt = google.visualization.arrayToDataTable([
+          ['Tipo', 'Qtd', {role: 'style'}], 
+          ['PRODUZIDO', totalProd, `color: ${colorProd};`], 
+          ['ENTREGUE', totalSaida, `color: ${colorSaida};`]  
+        ]);
+
+        const customOptions = {
+          ...getChartOptions(),
+          legend: 'none',
+          backgroundColor: 'transparent',
+          chartArea: { left: 60, right: 20, top: 20, bottom: 30 },
+          bar: { groupWidth: '40%' }, 
+          vAxis: {
+            textStyle: { color: '#9CA3AF', fontName: 'Poppins', fontSize: 13, bold: true },
+            gridlines: { color: 'transparent' },
+            baselineColor: 'transparent',
+            format: 'short',
+            minValue: 0,
+            viewWindow: { min: 0 }
+          },
+          hAxis: {
+            textStyle: { color: '#9CA3AF', fontName: 'Poppins', fontSize: 12, bold: true },
+            gridlines: { color: 'transparent' },
+            baselineColor: 'transparent'
+          }
+        };
+
+        const chartDiv = document.getElementById('chart_efficiency');
+        const chart = new google.visualization.ColumnChart(chartDiv);
+
+        google.visualization.events.addListener(chart, 'ready', function() {
+          setTimeout(() => {
+            const rects = chartDiv.querySelectorAll('svg rect');
+            rects.forEach(rect => {
+              const fill = (rect.getAttribute('fill') || '').toLowerCase();
+              if (fill === colorProd.toLowerCase() || fill === colorSaida.toLowerCase() || 
+                  fill === 'rgb(16, 185, 129)' || fill === 'rgb(6, 78, 59)') {
+                rect.setAttribute('rx', '15');
+                rect.setAttribute('ry', '15');
+              }
+            });
+          }, 100); 
+        });
+
+        chart.draw(dt, customOptions);
       }
 
       function renderSlide3() {
-        const itemVal = document.getElementById('selItem').value; const dStart = getFilterDate('dateStart', false); const dEnd = getFilterDate('dateEnd', true);
+        const itemVal = document.getElementById('selItem').value; 
+        const dStart = getFilterDate('dateStart', false); 
+        const dEnd = getFilterDate('dateEnd', true);
         const hasFilter = dStart || dEnd;
-        if (!itemVal) { document.getElementById('item-content').style.display='none'; document.getElementById('msg-empty').style.display='block'; return; }
-        document.getElementById('item-content').style.display='block'; document.getElementById('msg-empty').style.display='none';
+        
+        if (!itemVal) { 
+            document.getElementById('item-content').style.display='none'; 
+            document.getElementById('msg-empty').style.display='block'; 
+            return; 
+        }
+        document.getElementById('item-content').style.display='block'; 
+        document.getElementById('msg-empty').style.display='none';
 
         let globalStock = 0; let globalStockSubs = {};
         groupedData.forEach(r => { 
@@ -799,40 +1419,173 @@
 
         const filtered = groupedData.filter(r => r.item === itemVal && (!dStart || r.dateObj>=dStart) && (!dEnd || r.dateObj<=dEnd) && (hasFilter || r.origemTag !== 'PLANILHA'));
         const rule = GOAL_RULES.find(r => r.keywords.some(k => itemVal.toUpperCase().includes(k)));
-        const baseOpt = getChartOptions(); const comboOpt = { ...baseOpt, title: null, seriesType: 'bars', series: { 0: {color:'#3498db'}, 1: {type:'line', color:'#27ae60', lineWidth:4, lineDashStyle:null}, 2: {color:'#e74c3c'} } };
+        
+        // PADRÃO VISUAL DO ESTOQUE
+        const colorProd = '#10B981'; 
+        const colorSaida = '#064E3B';
+        const colorPos = '#10B981'; // Saldo Positivo
+        const colorNeg = '#EF4444'; // Saldo Negativo (Mantendo a lógica do vermelho)
+        const colorArea = '#F59E0B'; // Ambar para Evolução
+        const colorMeta = '#3B82F6'; // Azul para a Meta
 
+        const modernOpt = {
+          ...getChartOptions(),
+          legend: 'none',
+          backgroundColor: 'transparent',
+          chartArea: { left: 60, right: 20, top: 40, bottom: 40 }, // Garante que o eixo Y não será cortado
+          bar: { groupWidth: '45%' },
+          vAxis: {
+            textStyle: { color: '#9CA3AF', fontName: 'Poppins', fontSize: 13, bold: true },
+            gridlines: { color: 'transparent' },
+            baselineColor: 'transparent',
+            format: 'short',
+            minValue: 0,
+            viewWindow: { min: 0 }
+          },
+          hAxis: {
+            textStyle: { color: '#9CA3AF', fontName: 'Poppins', fontSize: 12, bold: true },
+            gridlines: { color: 'transparent' },
+            baselineColor: 'transparent'
+          }
+        };
+
+        const comboOpt = { 
+            ...modernOpt, 
+            title: null, 
+            seriesType: 'bars', 
+            series: { 
+                0: { color: colorProd }, 
+                1: { type: 'line', color: colorMeta, lineWidth: 3, pointSize: 6 }, 
+                2: { color: colorSaida } 
+            } 
+        };
+
+        // Função responsável por arredondar as barras (Efeito Pílula)
+        function applyModernStyle(chart, chartDivId) {
+            google.visualization.events.addListener(chart, 'ready', function() {
+                setTimeout(() => {
+                    const chartDiv = document.getElementById(chartDivId);
+                    if (!chartDiv) return;
+
+                    // 1. Arredondamento das barras
+                    const rects = chartDiv.querySelectorAll('svg rect');
+                    rects.forEach(rect => {
+                        const fill = (rect.getAttribute('fill') || '').toLowerCase();
+                        // Aplica o arredondamento apenas nas barras das cores oficiais mapeadas
+                        if (fill === colorProd.toLowerCase() || fill === colorSaida.toLowerCase() || 
+                            fill === colorPos.toLowerCase() || fill === colorNeg.toLowerCase() ||
+                            fill === 'rgb(16, 185, 129)' || fill === 'rgb(6, 78, 59)' || fill === 'rgb(239, 68, 68)') {
+                            rect.setAttribute('rx', '12');
+                            rect.setAttribute('ry', '12');
+                        }
+                    });
+
+                    // 2. Cores Dinâmicas nos Números (Anotações e Eixo Y)
+                    const texts = chartDiv.querySelectorAll('svg text');
+                    texts.forEach(text => {
+                        const valStr = text.textContent.trim();
+                        // Verifica através de Regex se o texto é estritamente um número (ex: 15, 0, -10)
+                        if (/^-?\d+(\.\d+)?$/.test(valStr)) {
+                            const num = parseFloat(valStr);
+                            if (num < 0) {
+                                text.setAttribute('fill', '#EF4444'); // Vermelho para negativo
+                            } else if (num === 0) {
+                                // Usa preto no tema claro e branco no tema escuro
+                                text.setAttribute('fill', isDarkMode ? '#FFFFFF' : '#000000'); 
+                            } else if (num > 0) {
+                                text.setAttribute('fill', '#10B981'); // Verde para positivo
+                            }
+                        }
+                    });
+                }, 100);
+            });
+        }
+
+        let numPoints = 0;
+
+        // VERIFICAÇÃO SE É SEMANAL OU DIÁRIO
         if (rule && rule.type === 'week') {
             const weekMap = {};
             filtered.forEach(r => { const w = getWeekData(r.dateObj); const k = `${r.dateObj.getFullYear()}-${w.num.toString().padStart(2,'0')}`; if (!weekMap[k]) weekMap[k] = { label: `${w.start} até ${w.end}`, p:0, s:0 }; weekMap[k].p += r.producao; weekMap[k].s += r.saida; });
             const sortedWeeks = Object.keys(weekMap).sort().map(k => ({...weekMap[k], k}));
+            numPoints = sortedWeeks.length;
 
             const dt1 = new google.visualization.DataTable(); dt1.addColumn('string','Semana'); dt1.addColumn('number','Produção'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number', `META: ${rule.label}`); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number','Saída'); dt1.addColumn({type:'string',role:'annotation'});
             sortedWeeks.forEach(x => dt1.addRow([x.label, x.p, x.p.toString(), rule.target > 0 ? rule.target : null, null, x.s, (x.s>0?x.s.toString():null)]));
-            new google.visualization.ComboChart(document.getElementById('chart_prod_vs_saida')).draw(dt1, comboOpt);
-
+            
             const dt2 = new google.visualization.DataTable(); dt2.addColumn('string','Semana'); dt2.addColumn('number','Saldo'); dt2.addColumn({type:'string',role:'style'}); dt2.addColumn({type:'string',role:'annotation'});
-            sortedWeeks.forEach(x => { let bal = x.p - x.s; dt2.addRow([x.label, bal, bal>=0?'#27ae60':'#c0392b', bal.toString()]); });
-            new google.visualization.ColumnChart(document.getElementById('chart_fluxo')).draw(dt2, {...baseOpt, title:'SALDO DA SEMANA', legend:'none'});
-
+            sortedWeeks.forEach(x => { let bal = x.p - x.s; dt2.addRow([x.label, bal, bal>=0?colorPos:colorNeg, bal.toString()]); });
+            
             const dt3 = new google.visualization.DataTable(); dt3.addColumn('string','Data'); dt3.addColumn('number','Estoque (Diário)'); dt3.addColumn({type:'string',role:'annotation'});
             filtered.sort((a,b)=>a.dateObj - b.dateObj).forEach(x => dt3.addRow([fmtDate(x.dateObj), x.estoqueDia, x.estoqueDia.toString()]));
-            new google.visualization.AreaChart(document.getElementById('chart_evolucao')).draw(dt3, {...baseOpt, title:'EVOLUÇÃO ESTOQUE (DIÁRIA)', legend:'none', colors:['#f39c12']});
+
+            renderCharts(dt1, dt2, dt3, numPoints);
         } else {
             const dateMap = {};
             filtered.forEach(r => { if(!dateMap[r.data]) dateMap[r.data] = { dateObj: r.dateObj, p:0, s:0, st:0 }; dateMap[r.data].p += r.producao; dateMap[r.data].s += r.saida; if(r.estoqueDia > dateMap[r.data].st) dateMap[r.data].st = r.estoqueDia; });
             const sorted = Object.values(dateMap).sort((a,b)=>a.dateObj - b.dateObj);
+            numPoints = sorted.length;
 
             const dt1 = new google.visualization.DataTable(); dt1.addColumn('string','Data'); dt1.addColumn('number','Produção'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number', rule && rule.target > 0 ? `META: ${rule.label}` : 'META'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number','Saída'); dt1.addColumn({type:'string',role:'annotation'});
             sorted.forEach(x => dt1.addRow([fmtDate(x.dateObj), x.p, x.p.toString(), rule && rule.target > 0 ? rule.target : null, null, x.s, (x.s>0?x.s.toString():null)]));
-            new google.visualization.ComboChart(document.getElementById('chart_prod_vs_saida')).draw(dt1, comboOpt);
-
+            
             const dt2 = new google.visualization.DataTable(); dt2.addColumn('string','Data'); dt2.addColumn('number','Saldo'); dt2.addColumn({type:'string',role:'style'}); dt2.addColumn({type:'string',role:'annotation'});
-            sorted.forEach(x => { let bal = x.p-x.s; dt2.addRow([fmtDate(x.dateObj), bal, bal>=0?'#27ae60':'#c0392b', bal.toString()]); });
-            new google.visualization.ColumnChart(document.getElementById('chart_fluxo')).draw(dt2, {...baseOpt, title:'SALDO DO DIA', legend:'none'});
-
+            sorted.forEach(x => { let bal = x.p-x.s; dt2.addRow([fmtDate(x.dateObj), bal, bal>=0?colorPos:colorNeg, bal.toString()]); });
+            
             const dt3 = new google.visualization.DataTable(); dt3.addColumn('string','Data'); dt3.addColumn('number','Estoque'); dt3.addColumn({type:'string',role:'annotation'});
             sorted.forEach(x => dt3.addRow([fmtDate(x.dateObj), x.st, x.st.toString()]));
-            new google.visualization.AreaChart(document.getElementById('chart_evolucao')).draw(dt3, {...baseOpt, title:'EVOLUÇÃO ESTOQUE', legend:'none', colors:['#f39c12']});
+            
+            renderCharts(dt1, dt2, dt3, numPoints);
+        }
+
+        // Lógica unificada para desenhar os gráficos e configurar a rolagem (Scroll)
+        function renderCharts(dt1, dt2, dt3, pts) {
+            const containerWidth = document.getElementById('item-content').clientWidth || window.innerWidth;
+            
+            // MÁGICA DO SCROLL HORIZONTAL: Espaço mínimo de 110px por barra/data.
+            // Se houverem muitos dias selecionados, o gráfico ficará mais largo que a tela.
+            const calculatedWidth = Math.max(containerWidth - 60, pts * 110); 
+
+            // Aplica CSS em linha para permitir a rolagem
+            const wrappers = ['chart_prod_vs_saida', 'chart_fluxo', 'chart_evolucao'];
+            wrappers.forEach(id => {
+               const div = document.getElementById(id);
+               div.style.width = calculatedWidth + 'px';
+               div.parentElement.style.overflowX = 'auto'; // Habilita o scroll no card parent
+               div.parentElement.style.overflowY = 'hidden';
+               // Adiciona uma barra de rolagem suave webkit visualmente amigável via CSS
+               div.parentElement.style.cssText += ' scroll-behavior: smooth; -webkit-overflow-scrolling: touch; padding-bottom: 10px;';
+            });
+
+            // Títulos isolados (Ficam fixos na tela enquanto o gráfico rola abaixo)
+            function addTitle(id, titleText) {
+                const div = document.getElementById(id);
+                let t = div.parentElement.parentElement.querySelector('.chart-custom-title');
+                if(!t) {
+                    t = document.createElement('h3');
+                    t.className = 'chart-custom-title';
+                    t.style.cssText = 'margin: 0 0 15px 0; font-size: 1.2rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);';
+                    div.parentElement.parentElement.insertBefore(t, div.parentElement);
+                }
+                t.innerText = titleText;
+            }
+
+            addTitle('chart_prod_vs_saida', 'PRODUÇÃO vs SAÍDA vs META');
+            addTitle('chart_fluxo', 'SALDO (PRODUÇÃO - SAÍDA)');
+            addTitle('chart_evolucao', 'EVOLUÇÃO DO ESTOQUE');
+
+            const chart1 = new google.visualization.ComboChart(document.getElementById('chart_prod_vs_saida'));
+            applyModernStyle(chart1, 'chart_prod_vs_saida');
+            chart1.draw(dt1, comboOpt);
+
+            const chart2 = new google.visualization.ColumnChart(document.getElementById('chart_fluxo'));
+            applyModernStyle(chart2, 'chart_fluxo');
+            chart2.draw(dt2, { ...modernOpt, title: null });
+
+            // O gráfico de evolução é de área, não precisa da função de arredondamento de pílula
+            const chart3 = new google.visualization.AreaChart(document.getElementById('chart_evolucao'));
+            applyModernStyle(chart3, 'chart_evolucao'); 
+            chart3.draw(dt3, { ...modernOpt, title: null, colors: [colorArea], areaOpacity: 0.2, lineWidth: 3, pointSize: 6 });
         }
       }
 
@@ -840,6 +1593,7 @@
         const dStart = getFilterDate('dateStart', false); const dEnd = getFilterDate('dateEnd', true);
         const filtered = groupedData.filter(r => (!dStart || r.dateObj>=dStart) && (!dEnd || r.dateObj<=dEnd));
         
+        // Agora todos os itens exclusivos do banco, mesmo os que não tenham tido produção no dia/semana, entram na listagem.
         const distinctItems = [...new Set([
             ...filtered.map(r => r.item.toUpperCase()),
             ...GOAL_RULES.map(r => r.name.toUpperCase())
@@ -866,6 +1620,7 @@
                      details += `<div class="goal-row"><span class="gr-date">${d}</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">${map[d]}${disp}</span><span>${badge}</span></div>`;
                   });
               } else {
+                  // Se o produto está no DB e é gerado via accordion, mostra 0 na semana/dia que não tiver produção
                   details += `<div class="goal-row"><span class="gr-date">PERÍODO SELECIONADO</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">0${rule.target > 0 ? ' / ' + rule.target : ''}</span><span>${rule.target > 0 ? '<span class="status-text st-bad">INSUFICIENTE</span>' : '<span class="status-text st-none">-</span>'}</span></div>`;
               }
            } else {
@@ -889,7 +1644,6 @@
       }
 
       window.toggleAcc = function(id) { document.getElementById('gb-'+id).classList.toggle('open'); }
-      
       function getWeekData(d) {
          const date = new Date(d.getTime()); date.setHours(0,0,0,0); date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
          const week1 = new Date(date.getFullYear(), 0, 4); const weekNum = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
@@ -897,9 +1651,66 @@
          const firstday = new Date(curr.setDate(diff)); const lastday = new Date(curr.setDate(curr.getDate()+4)); 
          return { num: weekNum, start: fmtDate(firstday), end: fmtDate(lastday) };
       }
-      
       function parseDate(str) { if(!str) return new Date(0); const p = str.split('/'); return (p.length === 3) ? new Date(p[2], p[1]-1, p[0]) : new Date(str); }
       function fmtDate(d) { return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}`; }
+    
+      function toggleItemDropdown() {document.getElementById('content-filterItem').classList.toggle('show');}
+
+      function handleSlide1ItemCheck(checkbox) {
+          const allCb = document.querySelector('#content-filterItem input[value="Todos"]');
+          const itemCbs = document.querySelectorAll('.s1-item-cb');
+          
+          if (checkbox.value === "Todos") {
+              if (checkbox.checked) {
+                  itemCbs.forEach(cb => cb.checked = false); // Desmarca todos os individuais
+              } else {
+                  checkbox.checked = true; // Impede desmarcar o "Todos" clicando nele mesmo
+              }
+          } else {
+              if (checkbox.checked) {
+                  allCb.checked = false; // Desmarca o "Todos" automaticamente
+              } else {
+                  // Se desmarcou o último item, volta a marcar o "Todos"
+                  const anyChecked = Array.from(itemCbs).some(cb => cb.checked);
+                  if (!anyChecked) allCb.checked = true;
+              }
+          }
+          updateSlide1ItemButtonText();
+          renderSlide1();
+      }
+
+      function updateSlide1ItemButtonText() {
+          const allCb = document.querySelector('#content-filterItem input[value="Todos"]');
+          const itemCbs = document.querySelectorAll('.s1-item-cb:checked');
+          const btn = document.getElementById('btn-filterItem');
+          
+          if (allCb && allCb.checked) {
+              btn.innerHTML = `TODOS ITENS <span class="material-icons" style="font-size:18px">arrow_drop_down</span>`;
+              btn.style.borderColor = "transparent";
+              btn.style.color = "var(--text-main)";
+          } else {
+              btn.innerHTML = `${itemCbs.length} ITEM(S) SEL. <span class="material-icons" style="font-size:18px">arrow_drop_down</span>`;
+              btn.style.borderColor = "var(--accent)";
+              btn.style.color = "var(--accent)";
+          }
+      }
+
+      function toggleEstoqueRow(idx) {
+          const row = document.getElementById(`est-det-${idx}`);
+          const head = document.getElementById(`est-head-${idx}`);
+          const icon = document.getElementById(`est-icon-${idx}`);
+          if (!row) return;
+          
+          if (row.classList.contains('open')) {
+              row.classList.remove('open');
+              head.classList.remove('active');
+              if(icon) icon.textContent = 'expand_more';
+          } else {
+              row.classList.add('open');
+              head.classList.add('active');
+              if(icon) icon.textContent = 'expand_less';
+          }
+      }
     </script>
   </body>
 </html>

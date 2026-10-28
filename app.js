@@ -4,15 +4,11 @@ const NodeCache = require('node-cache');
 const path = require('path');
 const dotenv = require('dotenv');
 const axios = require('axios');
-const cookieParser = require('cookie-parser');
 
 dotenv.config();
 const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
-app.use(express.json());
-app.use(cookieParser());
 
 // Permite que o servidor sirva arquivos estáticos da pasta public (onde está sua logo)
 app.use(express.static(path.join(__dirname, 'public')));
@@ -21,84 +17,9 @@ const myCache = new NodeCache({ stdTTL: 600 }); // 10 min de cache na memória
 
 const SUPABASE_URL = 'https://bjmkrtumtuoypnkwvxbh.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqbWtydHVtdHVveXBua3d2eGJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MjAzNjMsImV4cCI6MjA4NDM5NjM2M30.DmmapzJz9ed0J7_IQhh1h5q7u-knKSnLi_WGOr-va4s';
-const PORTAL_URL = 'https://menuugtr.vercel.app';
-const ROTA_PORTAL_SSO = `${PORTAL_URL}/ir/serralheria`; // Rota correspondente no seu Menu Central
 
 const CUTOFF_DATE_PLANILHA_MS = new Date(2026, 5, 12, 23, 59, 59).getTime();
 const CUTOFF_DATE_BANCO_MS = new Date(2026, 5, 12, 0, 0, 0).getTime();
-
-// --- MIDDLEWARE DE PROTEÇÃO SSO (8 HORAS) ---
-async function verificarSSO(req, res, next) {
-    const ssoToken = req.query.sso_token;
-    const currentUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-
-    // 1. Se veio um token fresco na URL (veio do Menu ou redirecionado do login)
-    if (ssoToken) {
-        try {
-            const response = await axios.get(`${PORTAL_URL}/api/sso/verificar?token=${encodeURIComponent(ssoToken)}`);
-            const dados = response.data;
-
-            if (dados && dados.valido) {
-                res.cookie('seap_sso_serralheria', ssoToken, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'lax',
-                    maxAge: 8 * 60 * 60 * 1000 // 8 horas
-                });
-
-                const cleanUrl = req.protocol + '://' + req.get('host') + req.path;
-                return res.redirect(cleanUrl);
-            }
-        } catch (e) {
-            console.error("Erro ao validar SSO:", e.message);
-        }
-    }
-
-    // 2. Se não tem na URL, verifica se o cookie de sessão de 8 horas existe
-    const cookieToken = req.cookies.seap_sso_serralheria;
-    if (cookieToken) {
-        try {
-            const response = await axios.get(`${PORTAL_URL}/api/sso/verificar?token=${encodeURIComponent(cookieToken)}`);
-            const dados = response.data;
-            if (dados && dados.valido) {
-                return next(); // Sessão válida!
-            }
-        } catch (e) {}
-    }
-
-    // 3. Não autenticado: Exibe a página de Acesso Restrito com o botão de Login
-    const urlLogin = `${PORTAL_URL}/login?redirect=${encodeURIComponent(ROTA_PORTAL_SSO)}`;
-    
-    return res.status(401).send(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Acesso Restrito - SEAP</title>
-            <style>
-                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ecf0f3; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-                .box { background: #fff; padding: 40px 35px; border-radius: 18px; box-shadow: 0 12px 30px rgba(0,0,0,0.12); text-align: center; max-width: 400px; width: 90%; }
-                h3 { color: #044c14; margin-top: 0; font-size: 22px; }
-                p { color: #64748B; font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
-                .btn { display: inline-block; padding: 13px 28px; background: linear-gradient(120deg, #044c14, #0a7d2a); color: #fff; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px; transition: transform 0.2s, box-shadow 0.2s; }
-                .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(10, 125, 42, 0.3); }
-            </style>
-            <script>
-                setTimeout(function() {
-                    window.top.location.href = "${urlLogin}";
-                }, 1500);
-            </script>
-        </head>
-        <body>
-            <div class="box">
-                <h3>🔒 Acesso Restrito</h3>
-                <p>Você precisa estar autenticado no Portal de Sistemas SEAP para visualizar este painel. Redirecionando para o login...</p>
-                <a class="btn" href="${urlLogin}" target="_top">Ir para o Login</a>
-            </div>
-        </body>
-        </html>
-    `);
-}
 
 // --- AUTENTICAÇÃO BLINDADA DO GOOGLE ---
 let auth;
@@ -310,6 +231,7 @@ async function getProcessosData() {
     return Object.values(processosMap);
 }
 
+// NOVO: Coleta todos os produtos e suas metas do banco de dados (Supabase)
 async function getProdutosDbData() {
     try {
         const response = await fetchSupabase('produtos?select=*&limit=5000');
@@ -320,16 +242,17 @@ async function getProdutosDbData() {
     }
 }
 
-// --- ROTAS DO EXPRESS PROTEGIDAS PELO SSO ---
+// --- ROTAS DO EXPRESS DE ALTA PERFORMANCE ---
 
-// 1. A rota principal entrega APENAS o visual instantaneamente (protegida)
-app.get('/', verificarSSO, (req, res) => {
+// 1. A rota principal entrega APENAS o visual instantaneamente
+app.get('/', (req, res) => {
     res.render('index');
 });
 
-// 2. A API com Cache na CDN (Edge Cache) do Vercel (protegida)
-app.get('/api/data', verificarSSO, async (req, res) => {
+// 2. A API com Cache na CDN (Edge Cache) do Vercel
+app.get('/api/data', async (req, res) => {
     try {
+        // A MÁGICA: Guarda na CDN por 10 minutos. O primeiro usuário no dia espera, os próximos voam!
         res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=120');
 
         const forceRefresh = req.query.refresh === 'true';
@@ -337,6 +260,7 @@ app.get('/api/data', verificarSSO, async (req, res) => {
 
         if (!data || forceRefresh) {
             console.log("Montando dados híbridos (Sheets + Supabase)...");
+            // Agora mescla a extração completa dos produtos também
             const [producao, processos, produtosDb] = await Promise.all([
                 getProducaoData(), 
                 getProcessosData(), 

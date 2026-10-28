@@ -1,10 +1,19 @@
 <style>
   .grid-slide7 { display: grid; gap: 25px; grid-template-columns: 3fr 1fr; }
   .totais-container { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; overflow-x: hidden; max-height: 500px; padding-right: 5px; }
-  .total-card { background: var(--input-bg); border: 1px solid var(--border-color); border-left: 6px solid var(--accent); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.2s; gap: 12px; }
+  
+  .total-card { 
+      background: var(--card-bg); 
+      border: 1px solid var(--border-color); 
+      border-left: 6px solid var(--accent); 
+      padding: 15px; border-radius: 12px; 
+      display: flex; justify-content: space-between; align-items: center; 
+      box-shadow: var(--shadow); transition: transform 0.2s; gap: 12px; 
+  }
   .total-card:hover { transform: translateX(5px); border-color: var(--accent); }
+  
   .tc-name { font-size: 0.85rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; line-height: 1.3; flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; }
-  .tc-val { font-size: 1.8rem; font-weight: 800; color: var(--text-main); line-height: 1; flex-shrink: 0; text-align: right; }
+  .tc-val { font-weight: 800; color: var(--text-main); line-height: 1; flex-shrink: 0; text-align: right; }
   
   .item-filter-box { display: inline-flex; align-items: center; gap: 6px; background: var(--input-bg); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 700; cursor: pointer; color: var(--text-main); transition: 0.2s; }
   .item-filter-box:hover { border-color: var(--accent); background: var(--card-bg); }
@@ -21,13 +30,13 @@
     <div class="slide-title"><span class="material-icons">stacked_line_chart</span> PRODUÇÃO POR OFICINA</div>
     <div class="filter-wrapper">
       <select id="selOficinaSlide7" onchange="onOficinaChangeSlide7()">
-        <!-- Preenchido automaticamente via JavaScript no index.ejs -->
+        <!-- Preenchido automaticamente via JavaScript -->
       </select>
     </div>
   </div>
   
-  <!-- BARRA DE FILTRO DE ITENS (EXIBIR/OCULTAR) -->
-  <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 18px 25px; margin-bottom: 25px; box-shadow: var(--shadow);">
+  <!-- BARRA DE FILTRO DE ITENS -->
+  <div class="chart-card" style="padding: 18px 25px; margin-bottom: 25px; background: var(--card-bg);">
      <div style="font-size: 0.9rem; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
          <span class="material-icons" style="font-size: 20px;">filter_alt</span> Filtrar Itens do Gráfico e Totais:
      </div>
@@ -64,8 +73,16 @@
 <script>
   let availableItemsCache = [];
 
+  // Chama esta função quando o menu principal (index.ejs) carregar os filtros
+  function initSlide7Filters() {
+      const oficinasGroup = [...new Set(groupedData.map(r => r.oficina))].filter(Boolean).sort();
+      const selOf = document.getElementById('selOficinaSlide7'); 
+      if (!selOf) return;
+      selOf.innerHTML = '<option value="" disabled selected>SELECIONE A OFICINA...</option>';
+      oficinasGroup.forEach(o => { selOf.add(new Option(o.toUpperCase(),o)); });
+  }
+
   function onOficinaChangeSlide7() {
-      // Quando troca de oficina, reseta os checkboxes gerando novos para os itens da nova oficina
       generateItemCheckboxes(true);
       renderSlide7();
   }
@@ -82,7 +99,6 @@
           return;
       }
 
-      // Filtra dados da oficina e período para descobrir quais itens possuem produção > 0
       const filtered = groupedData.filter(r => {
           if (r.oficina !== oficina) return false;
           if (dStart && r.dateObj < dStart) return false;
@@ -96,7 +112,6 @@
           itemTotals[r.item] += r.producao;
       });
 
-      // Remove estritamente itens que estão zerados no período atual
       const activeItems = Object.keys(itemTotals).filter(item => itemTotals[item] > 0).sort();
       
       if (activeItems.length === 0) {
@@ -105,7 +120,6 @@
           return;
       }
 
-      // Salva os estados atuais dos checkboxes antes de recriar (se não for reset forçado)
       const currentStates = {};
       if (!resetChecked) {
           document.querySelectorAll('.item-checkbox').forEach(cb => {
@@ -138,10 +152,8 @@
           return;
       }
 
-      // Garante que os checkboxes sejam recalculados dinamicamente com base no período/datas atuais
       generateItemCheckboxes(false);
 
-      // Identifica quais itens estão marcados pelo usuário nas caixas de seleção
       const selectedItems = [];
       document.querySelectorAll('.item-checkbox').forEach(cb => {
           if (cb.checked) selectedItems.push(cb.value);
@@ -150,7 +162,6 @@
       document.getElementById('msg-empty-slide7').style.display = 'none';
       document.getElementById('chart_producao_oficina').style.display = 'block';
 
-      // 1. Filtra os dados globais pela oficina e período
       const filtered = groupedData.filter(r => {
           if (r.oficina !== oficina) return false;
           if (dStart && r.dateObj < dStart) return false;
@@ -158,14 +169,12 @@
           return true;
       });
 
-      // 2. Calcula o total de cada item no período
       const itemTotals = {};
       filtered.forEach(r => {
           if (!itemTotals[r.item]) itemTotals[r.item] = 0;
           itemTotals[r.item] += r.producao;
       });
 
-      // 3. Renderiza apenas os Cards de Totais dos itens marcados
       let totalsHtml = '';
       let renderedTotalsCount = 0;
       selectedItems.forEach(item => {
@@ -173,7 +182,7 @@
           totalsHtml += `
           <div class="total-card">
               <span class="tc-name">${item}</span>
-              <span class="tc-val">${totalVal}</span>
+              <span class="tc-val numero-fluido">${totalVal}</span>
           </div>`;
           renderedTotalsCount++;
       });
@@ -189,7 +198,6 @@
           return;
       }
 
-      // 4. Prepara dados para o Gráfico apenas com os itens selecionados
       const dateMap = {};
       filtered.forEach(r => {
           if (selectedItems.includes(r.item)) {
@@ -209,7 +217,6 @@
           return;
       }
 
-      // 5. Monta o DataTable com anotações de números
       const dt = new google.visualization.DataTable();
       dt.addColumn('string', 'Data');
       
@@ -228,30 +235,64 @@
           dt.addRow(rData);
       });
 
-      // 6. Opções do Gráfico
+      // PADRONIZAÇÃO VISUAL MODERNA DO DASHBOARD E ALTURA AUMENTADA
       const baseOpt = getChartOptions();
-      const options = {
+      const modernOpt = {
           ...baseOpt,
           title: null,
-          curveType: 'function',
+          height: 600, // Aumenta a altura interna do gráfico
+          curveType: 'function', 
           lineWidth: 4,
           pointSize: 8,
+          backgroundColor: 'transparent',
+          chartArea: { left: 60, right: 30, top: 40, bottom: 40 },
           annotations: {
               alwaysOutside: true,
               textStyle: { fontSize: 13, bold: true, color: isDarkMode ? '#ffffff' : '#111111' },
-              stem: { length: -5 }
+              // A haste invisível com 'length' positivo empurra o número perfeitamente para cima do ponto
+              stem: { length: 15, color: 'transparent' } 
           },
           legend: { 
               position: 'top', 
               maxLines: 3, 
-              textStyle: { color: isDarkMode ? '#ffffff' : '#222222', fontName: 'Inter', fontSize: 12, bold: true } 
+              textStyle: { color: '#9CA3AF', fontName: 'Poppins', fontSize: 12, bold: true } 
           },
-          chartArea: { width: '92%', height: '70%' },
-          hAxis: { ...baseOpt.hAxis, slantedText: false, showTextEvery: Math.ceil(sortedDates.length / 10) }
+          vAxis: {
+              textStyle: { color: '#9CA3AF', fontName: 'Poppins', fontSize: 13, bold: true },
+              gridlines: { color: 'transparent' }, 
+              baselineColor: 'transparent', 
+              format: 'short' 
+          },
+          hAxis: {
+              textStyle: { color: '#9CA3AF', fontName: 'Poppins', fontSize: 12, bold: true },
+              gridlines: { color: 'transparent' },
+              baselineColor: 'transparent',
+              showTextEvery: 1 
+          }
       };
 
-      // 7. Desenha o Gráfico
-      const chart = new google.visualization.LineChart(document.getElementById('chart_producao_oficina'));
-      chart.draw(dt, options);
+      const chartDiv = document.getElementById('chart_producao_oficina');
+      
+      // SISTEMA DE ESPAÇAMENTO E ROLAGEM HORIZONTAL
+      let scrollWrapper = document.getElementById('chart_producao_oficina_wrapper');
+      if (!scrollWrapper) {
+          scrollWrapper = document.createElement('div');
+          scrollWrapper.id = 'chart_producao_oficina_wrapper';
+          chartDiv.parentNode.insertBefore(scrollWrapper, chartDiv);
+          scrollWrapper.appendChild(chartDiv);
+      }
+      
+      const containerWidth = scrollWrapper.parentElement.clientWidth || window.innerWidth;
+      const calculatedWidth = Math.max(containerWidth - 60, sortedDates.length * 110); 
+      
+      // Aplica a nova altura ampliada na div que segura o gráfico
+      chartDiv.style.height = '600px';
+      chartDiv.style.width = calculatedWidth + 'px';
+      scrollWrapper.style.overflowX = 'auto'; 
+      scrollWrapper.style.overflowY = 'hidden';
+      scrollWrapper.style.cssText += ' scroll-behavior: smooth; -webkit-overflow-scrolling: touch; padding-bottom: 15px;';
+
+      const chart = new google.visualization.LineChart(chartDiv);
+      chart.draw(dt, modernOpt);
   }
 </script>

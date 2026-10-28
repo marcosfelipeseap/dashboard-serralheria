@@ -2,51 +2,186 @@
 <script src='https://unpkg.com/@fullcalendar/core@6.1.8/locales/pt-br.global.min.js'></script>
 
 <style>
-  #calendar-wrapper { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); height: calc(100vh - 140px); overflow: hidden; border: 1px solid var(--border-color); width: 100%;}
-  .fc { font-family: 'Inter', sans-serif; --fc-border-color: var(--border-color); --fc-today-bg-color: var(--input-bg); width: 100%;}
-  .fc-toolbar-title { font-size: 1.4rem !important; font-weight: 700; color: var(--text-main); }
-  .fc-button { background-color: transparent !important; border: 1px solid var(--border-color) !important; color: var(--text-muted) !important; font-weight: 600 !important; text-transform: uppercase !important; border-radius: 8px !important; box-shadow: none !important; }
-  .fc-button:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
-  .fc-button-active { background-color: var(--accent) !important; border-color: var(--accent) !important; color: white !important; }
-  .fc-col-header-cell-cushion { color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; font-weight: 700; padding: 10px 0 !important; }
-  .fc-daygrid-day-number { color: var(--text-main); font-weight: 600; padding: 8px !important; }
+  #calendar-wrapper {
+      background: var(--card-bg); 
+      padding: 1.5rem; 
+      border-radius: 20px !important; /* Arredondamento padrão do sistema */
+      box-shadow: var(--shadow); 
+      height: calc(100vh - 140px); 
+      overflow: hidden; 
+      border: none; /* Tirada a borda para ficar mais limpo */
+      width: 100%;
+  }
+
+  /* RESET DO FULLCALENDAR PARA USAR NOSSA FONTE */
+  .fc { 
+      font-family: 'Poppins', sans-serif !important; 
+      --fc-border-color: var(--border-color); 
+      --fc-today-bg-color: var(--input-bg); 
+      width: 100%;
+  }
+
+  /* ORGANIZAÇÃO DO TÍTULO (MÊS E ANO) */
+  .fc-toolbar-title { 
+      font-size: 1.5rem !important; 
+      font-weight: 800 !important; 
+      color: var(--text-main) !important; 
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 15px !important;
+  }
+
+  /* ALINHAMENTO DA BARRA SUPERIOR */
+  .fc-header-toolbar {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 15px;
+      align-items: center !important;
+      justify-content: space-between !important;
+      margin-bottom: 25px !important;
+  }
+
+  /* AGRUPAMENTOS DE BOTÕES (Para não ficarem soltos) */
+  .fc-toolbar-chunk {
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+  }
+
+  /* RESET DOS GRUPOS NATIVOS DO FULLCALENDAR */
+  .fc-button-group {
+      display: flex !important;
+      gap: 8px !important;
+  }
+
+  /* ESTILO ÚNICO E RESPONSIVO PARA OS BOTÕES */
+  .fc .fc-button-primary,
+  .fc .fc-button {
+      background-color: var(--input-bg) !important; 
+      color: var(--text-muted) !important; 
+      border: 1px solid var(--border-color) !important;
+      border-radius: 12px !important; /* Bordas arredondadas independentes */
+      padding: 8px 16px !important; 
+      display: inline-flex !important; 
+      align-items: center !important; 
+      justify-content: center !important; 
+      box-shadow: none !important; 
+      transition: all 0.2s ease-in-out !important; 
+      font-weight: 700 !important;
+      font-size: 0.85rem !important;
+      text-transform: uppercase !important;
+      margin: 0 !important; /* Remove a margem negativa nativa que "cola" os botões */
+  }
+
+  /* HOVER E BOTÃO ATIVO */
+  .fc .fc-button-primary:hover,
+  .fc .fc-button:hover {
+      background-color: var(--accent) !important; 
+      color: #ffffff !important;
+      border-color: var(--accent) !important;
+      transform: translateY(-1px);
+  }
+  
+  .fc .fc-button-primary:not(:disabled).fc-button-active,
+  .fc .fc-button-primary:not(:disabled):active {
+      background-color: var(--accent) !important;
+      color: #ffffff !important;
+      border-color: var(--accent) !important;
+      box-shadow: 0 4px 10px rgba(0, 30, 122, 0.2) !important;
+  }
+
+  /* ICONES DE VOLTAR E AVANÇAR */
+  .fc-icon { font-size: 1.2em !important; }
+
+  /* CABEÇALHO DOS DIAS DA SEMANA */
+  .fc-col-header-cell-cushion { 
+      color: var(--text-muted); 
+      text-transform: uppercase; 
+      font-size: 0.85rem; 
+      font-weight: 700; 
+      padding: 12px 0 !important; 
+  }
+
+  /* NÚMEROS DOS DIAS NO CALENDÁRIO */
+  .fc-daygrid-day-number { 
+      color: var(--text-main); 
+      font-weight: 600; 
+      padding: 8px !important; 
+      font-size: 0.95rem;
+  }
+
   .fc-daygrid-event { background: transparent !important; border: none !important; margin-top: 2px !important; cursor: pointer; }
 
-  .custom-event { border-radius: 4px; padding: 4px 6px; font-size: 0.75rem; display: flex; flex-direction: column; overflow: hidden; border-left: 4px solid transparent; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.1s; width: 100%; }
-  .custom-event:hover { transform: scale(1.02); z-index: 5; }
-  .evt-title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .evt-status { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; margin-top: 1px; }
+  .custom-event { border-radius: 8px; padding: 6px 8px; font-size: 0.75rem; display: flex; flex-direction: column; overflow: hidden; border-left: 4px solid transparent; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.1s; width: 100%; margin-bottom: 2px; }
+  .custom-event:hover { transform: scale(1.02); z-index: 5; box-shadow: var(--shadow); }
+  .evt-title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem;}
+  .evt-status { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-top: 2px; }
 
-  .ce-pendente { background-color: #FFF3E0; border-left-color: #EF6C00; color: #E65100; }
-  .ce-concluido { background-color: #E8F5E9; border-left-color: #2E7D32; color: #1B5E20; }
+  .ce-pendente { background-color: var(--warning-bg); border-left-color: var(--warning); color: #b24000; }
+  .ce-concluido { background-color: var(--success-bg); border-left-color: var(--success); color: #154c19; }
 
-  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 15px;}
-  .modal-card { background: var(--card-bg); width: 100%; max-width: 650px; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-color); }
-  .modal-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); }
-  .modal-title { font-weight: 700; color: var(--text-main); font-size: 1.1rem; }
-  .close-btn { cursor: pointer; color: var(--text-muted); } .close-btn:hover { color: var(--danger); }
-  .modal-body { padding: 20px; overflow-y: auto; max-height: 70vh; }
-  .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px; }
-  .info-key { font-weight: 600; color: var(--text-muted); font-size: 0.8rem; } .info-val { font-weight: 700; color: var(--text-main); font-size: 0.9rem; text-align: right;}
-  .modal-table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 0.85rem; }
-  .modal-table th { text-align: left; background: var(--accent); color: white; padding: 8px; }
-  .modal-table td { border-bottom: 1px solid var(--border-color); padding: 8px; color: var(--text-main); }
+  /* MOLDAL DE DETALHES */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 9999; align-items: center; justify-content: center; padding: 15px;}
+  .modal-card {background: var(--card-bg); width: 100%; max-width: 650px; border-radius: 20px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.2); border: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; animation: fadeEffect 0.3s;}
+  .modal-header { padding: 20px 25px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); }
+  .modal-title { font-weight: 800; color: var(--text-main); font-size: 1.2rem; text-transform: uppercase;}
+  .close-btn { cursor: pointer; color: var(--text-muted); transition: 0.2s;} .close-btn:hover { color: var(--danger); transform: scale(1.1); }
+  .modal-body { padding: 25px; overflow-y: auto; max-height: 70vh; }
+  .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; }
+  .info-key { font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;} .info-val { font-weight: 800; color: var(--text-main); font-size: 0.95rem; text-align: right;}
+  
+  .modal-table { width: 100%; margin-top: 20px; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);}
+  .modal-table th {text-align: left; background: var(--input-bg); color: var(--text-muted); padding: 12px; font-weight: 700; text-transform: uppercase;}
+  .modal-table td { border-bottom: 1px solid var(--border-color); padding: 12px; color: var(--text-main); font-weight: 500;}
 
+  /* AJUSTE PARA CELULARES - CRONOGRAMA RESPONSIVO */
+ /* AJUSTE PARA CELULARES - CRONOGRAMA RESPONSIVO */
   @media (max-width: 1199px) {
-      .fc-toolbar { flex-direction: column; gap: 10px; }
-      .fc-toolbar-chunk { display: flex; justify-content: center; width: 100%; }
-      #calendar-wrapper { padding: 10px; height: auto; min-height: 60vh; }
+      /* A SOLUÇÃO ESTÁ AQUI: Altura fixa para o calendário não desaparecer */
+      #calendar-wrapper { 
+          padding: 15px; 
+          border-radius: 16px; 
+          height: 650px !important; 
+          min-height: 650px !important;
+      }
       
-      .modal-table, .modal-table tbody { display: block; width: 100%; }
+      .fc-header-toolbar {
+          flex-direction: column;
+          align-items: stretch !important;
+          gap: 15px !important;
+      }
+
+      /* Título (Mês/Ano) fica centralizado no celular */
+      .fc-toolbar-chunk:nth-child(2) {
+          order: -1; 
+          justify-content: center !important;
+          margin-bottom: 5px;
+      }
+      
+      .fc-toolbar-title { font-size: 1.2rem !important; }
+
+      /* Botões de navegação e visualização espalhados uniformemente */
+      .fc-toolbar-chunk:nth-child(1), .fc-toolbar-chunk:nth-child(3) {
+          justify-content: space-between !important;
+          width: 100%;
+      }
+      
+      .fc-button-group { width: 100%; justify-content: center; }
+      .fc .fc-button { flex: 1; padding: 10px !important; font-size: 0.75rem !important;}
+
+      /* Modal responsivo */
+      .modal-table, .modal-table tbody { display: block; width: 100%; border: none;}
       .modal-table thead { display: none; }
-      .modal-table tbody tr { display: block; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 8px; padding: 0;}
-      .modal-table tbody td { display: flex; justify-content: space-between; padding: 8px!important; border-bottom: 1px dashed var(--border-color) !important; text-align: right;}
+      .modal-table tbody tr { display: block; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 12px; padding: 0;}
+      .modal-table tbody td { display: flex; justify-content: space-between; padding: 10px 15px !important; border-bottom: 1px dashed var(--border-color) !important; text-align: right;}
       .modal-table tbody td:last-child { border-bottom: none !important; }
-      .modal-table tbody td:nth-child(1)::before { content: "Material"; font-weight: bold; color: var(--text-muted); }
-      .modal-table tbody td:nth-child(2)::before { content: "Subgrupo"; font-weight: bold; color: var(--text-muted); }
-      .modal-table tbody td:nth-child(3)::before { content: "Entregue"; font-weight: bold; color: var(--text-muted); }
-      .modal-table tbody td:nth-child(4)::before { content: "Faltante"; font-weight: bold; color: var(--text-muted); }
-      .modal-table tbody td:nth-child(5)::before { content: "Situação"; font-weight: bold; color: var(--text-muted); }
+      .modal-table tbody td::before { font-weight: 800; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; display: flex; align-items: center;}
+      
+      .modal-table tbody td:nth-child(1)::before { content: "Material"; }
+      .modal-table tbody td:nth-child(2)::before { content: "Subgrupo"; }
+      .modal-table tbody td:nth-child(3)::before { content: "Entregue"; }
+      .modal-table tbody td:nth-child(4)::before { content: "Faltante"; }
+      .modal-table tbody td:nth-child(5)::before { content: "Situação"; }
   }
 </style>
 
