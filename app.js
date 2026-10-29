@@ -29,6 +29,11 @@ const CUTOFF_DATE_BANCO_MS = new Date(2026, 5, 12, 0, 0, 0).getTime();
 
 // --- MIDDLEWARE DE PROTEÇÃO SSO (8 HORAS) ---
 async function verificarSSO(req, res, next) {
+    // BYPASS PARA LOCALHOST: Se não estiver no Vercel, ignora o login e libera o acesso
+    if (!process.env.VERCEL) {
+        return next();
+    }
+
     const ssoToken = req.query.sso_token;
     const currentUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
 
@@ -162,19 +167,39 @@ function parseNumber(value) {
 }
 
 async function fetchSupabase(endpoint) {
-    try {
-        const response = await axios.get(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': 'Bearer ' + SUPABASE_KEY,
-                'Accept-Profile': 'serralheria'
+    let allData = [];
+    let offset = 0;
+    const limit = 1000;
+    let hasMore = true;
+
+    let cleanEndpoint = endpoint.replace(/&limit=\d+/g, '').replace(/\?limit=\d+/g, '');
+    const separator = cleanEndpoint.includes('?') ? '&' : '?';
+
+    while (hasMore) {
+        try {
+            const response = await axios.get(`${SUPABASE_URL}/rest/v1/${cleanEndpoint}${separator}limit=${limit}&offset=${offset}`, {
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': 'Bearer ' + SUPABASE_KEY,
+                    'Accept-Profile': 'serralheria'
+                }
+            });
+
+            if (response.data && response.data.length > 0) {
+                allData = allData.concat(response.data);
+                offset += limit;
+                if (response.data.length < limit) {
+                    hasMore = false; 
+                }
+            } else {
+                hasMore = false;
             }
-        });
-        return response.data;
-    } catch (error) {
-        console.error("Erro no Supabase:", error.message);
-        return [];
+        } catch (error) {
+            console.error("Erro no Supabase:", error.message);
+            hasMore = false;
+        }
     }
+    return allData;
 }
 
 // --- LÓGICA DE DADOS ---
@@ -213,8 +238,8 @@ async function getProducaoData() {
     // 2. Supabase (Entradas e Saídas pós 12/06)
     try {
         const [entradasRaw, saidasRaw] = await Promise.all([
-            fetchSupabase('relatorio_producoes?select=qtd_produzida,observacao,justificativa,detalhes_subgrupos,relatorios_diarios(data_relatorio,numero_internos,horario_inicio,horario_fim,oficinas(nome)),produtos(nome)&limit=5000'),
-            fetchSupabase('saida_itens?select=qtd_saida,detalhes_subgrupos,saidas_produtos(data_saida,observacao,destino),oficinas(nome),produtos(nome)&limit=5000')
+            fetchSupabase('relatorio_producoes?select=qtd_produzida,observacao,justificativa,detalhes_subgrupos,relatorios_diarios(data_relatorio,numero_internos,horario_inicio,horario_fim,oficinas(nome)),produtos(nome)&order=id.desc'),
+            fetchSupabase('saida_itens?select=qtd_saida,detalhes_subgrupos,saidas_produtos(data_saida,observacao,destino),oficinas(nome),produtos(nome)&order=id.desc')
         ]);
 
         entradasRaw.forEach(e => {
@@ -264,7 +289,7 @@ async function getProducaoData() {
 }
 
 async function getProcessosData() {
-    const processosRaw = await fetchSupabase('processos?select=id,numero,data_entrada,tipo_demanda,orgao,data_autorizacao,status,link_sei,prazo_finalizacao,processo_produtos(qtd_autorizada,qtd_entregue,observacao,subgrupo,produtos(nome)),processo_termos(numeracao,situacao,link_pdf,data_termo)&limit=5000');
+    const processosRaw = await fetchSupabase('processos?select=id,numero,data_entrada,tipo_demanda,orgao,data_autorizacao,status,link_sei,prazo_finalizacao,processo_produtos(qtd_autorizada,qtd_entregue,observacao,subgrupo,produtos(nome)),processo_termos(numeracao,situacao,link_pdf,data_termo)&order=id.desc');
     const processosMap = {};
 
     processosRaw.forEach(p => {
@@ -312,7 +337,7 @@ async function getProcessosData() {
 
 async function getProdutosDbData() {
     try {
-        const response = await fetchSupabase('produtos?select=*&limit=5000');
+        const response = await fetchSupabase('produtos?select=*&order=id.desc');
         return Array.isArray(response) ? response : [];
     } catch (err) {
         console.error("Erro Coletando Produtos DB:", err.message);

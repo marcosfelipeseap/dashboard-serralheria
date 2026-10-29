@@ -515,7 +515,7 @@
   }
 
  /* ==================================================================== */
-  /* 1. CORREÇÃO DO CRONOGRAMA: BOTÕES NA TELA E DATA SEM QUEBRAR LINHA   */
+  /* 1. CORREÇÃO DO CRONOGRAMA: BOTÕES NA TELA E DATA SEM QUEBRAR LINHA  */
   /* ==================================================================== */
   @media (max-width: 1199px) {
       /* Reorganiza o cabeçalho para manter os botões lado a lado */
@@ -869,12 +869,13 @@
       }
 
       function normalizeItemName(name) {
-          const upper = name.toUpperCase();
+          if (!name) return "";
+          const upper = name.toString().toUpperCase().trim();
           if (upper.includes("CADEIRA FIXA EM POLIPROPILENO")) return "CADEIRA FIXA EM POLIPROPILENO";
           if (upper.includes("CADEIRA GIRATÓRIA ESPALDAR")) return "CADEIRA GIRATÓRIA ESPALDAR";
           if (upper.includes("CARTEIRA ESCOLAR")) return "CARTEIRA ESCOLAR";
           if (upper.includes("LONGARINA EM POLIPROPILENO DE 3 LUGARES")) return "LONGARINA EM POLIPROPILENO DE 3 LUGARES";
-          return name;
+          return upper;
       }
 
       function processGroupedData() {
