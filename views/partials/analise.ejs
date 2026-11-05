@@ -1,0 +1,220 @@
+<style>
+  .header-stock-badge {
+      display: inline-block;
+      background: var(--input-bg);
+      color: var(--accent);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-left: 15px;
+      border: 1px solid var(--border-color);
+      vertical-align: middle;
+  }
+</style>
+
+<!-- SLIDE 3: ANÁLISE DO ITEM -->
+<div class="slide fade" id="slide3" style="display: none;">
+  <div class="slide-header">
+    <div class="slide-title"><span class="material-icons">query_stats</span> ANÁLISE DO ITEM <span id="headerStockBadge" class="header-stock-badge" style="display:none;"></span></div>
+    <div class="filter-wrapper"><select id="selItem" onchange="renderSlide3()"><option value="" disabled selected>SELECIONE UM ITEM...</option></select></div>
+  </div>
+  <div id="item-content" style="display:none">
+    <div class="chart-card" style="padding:20px; margin-bottom:25px;"><div id="chart_prod_vs_saida" style="height: 400px; width: 100%;"></div></div>
+    <div class="chart-card" style="padding:20px; margin-bottom:25px;"><div id="chart_fluxo" style="height: 400px; width: 100%;"></div></div>
+    <div class="chart-card" style="padding:20px; margin-bottom:25px;"><div id="chart_evolucao" style="height: 400px; width: 100%;"></div></div>
+  </div>
+  <div id="msg-empty" style="text-align:center; padding: 100px 20px; color:var(--text-muted); opacity:0.8;"><span class="material-icons" style="font-size: 5rem; margin-bottom: 15px;">touch_app</span><h3 style="font-size: 1.5rem; text-transform: uppercase;">SELECIONE UM ITEM NA LISTA ACIMA</h3></div>
+</div>
+
+<script>
+  function initSlide3Filters(itensGroup) {
+      const selItem = document.getElementById('selItem'); 
+      if (!selItem) return;
+      selItem.innerHTML = '<option value="" disabled selected>SELECIONE UM ITEM...</option>';
+      itensGroup.forEach(i => selItem.add(new Option(i, i)));
+  }
+
+  function renderSlide3() {
+    const itemVal = document.getElementById('selItem').value; 
+    const dStart = getFilterDate('dateStart', false); 
+    const dEnd = getFilterDate('dateEnd', true);
+    const hasFilter = dStart || dEnd;
+    
+    if (!itemVal) { 
+        document.getElementById('item-content').style.display = 'none'; 
+        document.getElementById('msg-empty').style.display = 'block'; 
+        return; 
+    }
+    document.getElementById('item-content').style.display = 'block'; 
+    document.getElementById('msg-empty').style.display = 'none';
+
+    let globalStock = 0; let globalStockSubs = {};
+    groupedData.forEach(r => { 
+       if(r.item === itemVal) {
+           if (r.origemTag === 'PLANILHA') { if (!hasFilter) return; if (dStart && r.dateObj < dStart) return; if (dEnd && r.dateObj > dEnd) return; }
+           globalStock += (r.producao - r.saida); sumSubgroups(globalStockSubs, r.subgrupos_producao);
+           if(r.subgrupos_saida) { Object.keys(r.subgrupos_saida).forEach(k => { globalStockSubs[k] = (globalStockSubs[k] || 0) - Number(r.subgrupos_saida[k]); }); }
+       } 
+    });
+    const hb = document.getElementById('headerStockBadge'); 
+    let subText = formatSubgroups(globalStockSubs);
+    hb.innerHTML = `ESTOQUE ATUAL: ${globalStock} ${subText ? `<span style="font-size:0.75rem; font-weight:600; opacity:0.8; margin-left:8px;">(${subText})</span>` : ''}`; 
+    hb.style.display = 'inline-block';
+
+    const filtered = groupedData.filter(r => r.item === itemVal && (!dStart || r.dateObj >= dStart) && (!dEnd || r.dateObj <= dEnd) && (hasFilter || r.origemTag !== 'PLANILHA'));
+    const rule = GOAL_RULES.find(r => r.keywords.some(k => itemVal.toUpperCase().includes(k)));
+    
+    const colorProd = '#10B981'; 
+    const colorSaida = '#064E3B';
+    const colorPos = '#10B981'; 
+    const colorNeg = '#EF4444'; 
+    const colorArea = '#F59E0B'; 
+    const colorMeta = '#3B82F6'; 
+
+    const modernOpt = {
+      ...getChartOptions(),
+      legend: 'none',
+      backgroundColor: 'transparent',
+      chartArea: { left: 60, right: 20, top: 40, bottom: 40 },
+      bar: { groupWidth: '45%' },
+      vAxis: {
+        textStyle: { color: '#9CA3AF', fontName: 'Poppins', fontSize: 13, bold: true },
+        gridlines: { color: 'transparent' },
+        baselineColor: 'transparent',
+        format: 'short',
+        minValue: 0,
+        viewWindow: { min: 0 }
+      },
+      hAxis: {
+        textStyle: { color: '#9CA3AF', fontName: 'Poppins', fontSize: 12, bold: true },
+        gridlines: { color: 'transparent' },
+        baselineColor: 'transparent'
+      }
+    };
+
+    const comboOpt = { 
+        ...modernOpt, 
+        title: null, 
+        seriesType: 'bars', 
+        series: { 
+            0: { color: colorProd }, 
+            1: { type: 'line', color: colorMeta, lineWidth: 3, pointSize: 6 }, 
+            2: { color: colorSaida } 
+        } 
+    };
+
+    function applyModernStyle(chart, chartDivId) {
+        google.visualization.events.addListener(chart, 'ready', function() {
+            setTimeout(() => {
+                const chartDiv = document.getElementById(chartDivId);
+                if (!chartDiv) return;
+
+                const rects = chartDiv.querySelectorAll('svg rect');
+                rects.forEach(rect => {
+                    const fill = (rect.getAttribute('fill') || '').toLowerCase();
+                    if (fill === colorProd.toLowerCase() || fill === colorSaida.toLowerCase() || 
+                        fill === colorPos.toLowerCase() || fill === colorNeg.toLowerCase() ||
+                        fill === 'rgb(16, 185, 129)' || fill === 'rgb(6, 78, 59)' || fill === 'rgb(239, 68, 68)') {
+                        rect.setAttribute('rx', '12');
+                        rect.setAttribute('ry', '12');
+                    }
+                });
+
+                const texts = chartDiv.querySelectorAll('svg text');
+                texts.forEach(text => {
+                    const valStr = text.textContent.trim();
+                    if (/^-?\d+(\.\d+)?$/.test(valStr)) {
+                        const num = parseFloat(valStr);
+                        if (num < 0) {
+                            text.setAttribute('fill', '#EF4444'); 
+                        } else if (num === 0) {
+                            text.setAttribute('fill', isDarkMode ? '#FFFFFF' : '#000000'); 
+                        } else if (num > 0) {
+                            text.setAttribute('fill', '#10B981'); 
+                        }
+                    }
+                });
+            }, 100);
+        });
+    }
+
+    let numPoints = 0;
+
+    if (rule && rule.type === 'week') {
+        const weekMap = {};
+        filtered.forEach(r => { const w = getWeekData(r.dateObj); const k = `${r.dateObj.getFullYear()}-${w.num.toString().padStart(2,'0')}`; if (!weekMap[k]) weekMap[k] = { label: `${w.start} até ${w.end}`, p:0, s:0 }; weekMap[k].p += r.producao; weekMap[k].s += r.saida; });
+        const sortedWeeks = Object.keys(weekMap).sort().map(k => ({...weekMap[k], k}));
+        numPoints = sortedWeeks.length;
+
+        const dt1 = new google.visualization.DataTable(); dt1.addColumn('string','Semana'); dt1.addColumn('number','Produção'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number', `META: ${rule.label}`); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number','Saída'); dt1.addColumn({type:'string',role:'annotation'});
+        sortedWeeks.forEach(x => dt1.addRow([x.label, x.p, x.p.toString(), rule.target > 0 ? rule.target : null, null, x.s, (x.s>0?x.s.toString():null)]));
+        
+        const dt2 = new google.visualization.DataTable(); dt2.addColumn('string','Semana'); dt2.addColumn('number','Saldo'); dt2.addColumn({type:'string',role:'style'}); dt2.addColumn({type:'string',role:'annotation'});
+        sortedWeeks.forEach(x => { let bal = x.p - x.s; dt2.addRow([x.label, bal, bal>=0?colorPos:colorNeg, bal.toString()]); });
+        
+        const dt3 = new google.visualization.DataTable(); dt3.addColumn('string','Data'); dt3.addColumn('number','Estoque (Diário)'); dt3.addColumn({type:'string',role:'annotation'});
+        filtered.sort((a,b)=>a.dateObj - b.dateObj).forEach(x => dt3.addRow([fmtDate(x.dateObj), x.estoqueDia, x.estoqueDia.toString()]));
+
+        renderCharts(dt1, dt2, dt3, numPoints);
+    } else {
+        const dateMap = {};
+        filtered.forEach(r => { if(!dateMap[r.data]) dateMap[r.data] = { dateObj: r.dateObj, p:0, s:0, st:0 }; dateMap[r.data].p += r.producao; dateMap[r.data].s += r.saida; if(r.estoqueDia > dateMap[r.data].st) dateMap[r.data].st = r.estoqueDia; });
+        const sorted = Object.values(dateMap).sort((a,b)=>a.dateObj - b.dateObj);
+        numPoints = sorted.length;
+
+        const dt1 = new google.visualization.DataTable(); dt1.addColumn('string','Data'); dt1.addColumn('number','Produção'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number', rule && rule.target > 0 ? `META: ${rule.label}` : 'META'); dt1.addColumn({type:'string',role:'annotation'}); dt1.addColumn('number','Saída'); dt1.addColumn({type:'string',role:'annotation'});
+        sorted.forEach(x => dt1.addRow([fmtDate(x.dateObj), x.p, x.p.toString(), rule && rule.target > 0 ? rule.target : null, null, x.s, (x.s>0?x.s.toString():null)]));
+        
+        const dt2 = new google.visualization.DataTable(); dt2.addColumn('string','Data'); dt2.addColumn('number','Saldo'); dt2.addColumn({type:'string',role:'style'}); dt2.addColumn({type:'string',role:'annotation'});
+        sorted.forEach(x => { let bal = x.p-x.s; dt2.addRow([fmtDate(x.dateObj), bal, bal>=0?colorPos:colorNeg, bal.toString()]); });
+        
+        const dt3 = new google.visualization.DataTable(); dt3.addColumn('string','Data'); dt3.addColumn('number','Estoque'); dt3.addColumn({type:'string',role:'annotation'});
+        sorted.forEach(x => dt3.addRow([fmtDate(x.dateObj), x.st, x.st.toString()]));
+        
+        renderCharts(dt1, dt2, dt3, numPoints);
+    }
+
+    function renderCharts(dt1, dt2, dt3, pts) {
+        const containerWidth = document.getElementById('item-content').clientWidth || window.innerWidth;
+        const calculatedWidth = Math.max(containerWidth - 60, pts * 110); 
+
+        const wrappers = ['chart_prod_vs_saida', 'chart_fluxo', 'chart_evolucao'];
+        wrappers.forEach(id => {
+           const div = document.getElementById(id);
+           div.style.width = calculatedWidth + 'px';
+           div.parentElement.style.overflowX = 'auto'; 
+           div.parentElement.style.overflowY = 'hidden';
+           div.parentElement.style.cssText += ' scroll-behavior: smooth; -webkit-overflow-scrolling: touch; padding-bottom: 10px;';
+        });
+
+        function addTitle(id, titleText) {
+            const div = document.getElementById(id);
+            let t = div.parentElement.parentElement.querySelector('.chart-custom-title');
+            if(!t) {
+                t = document.createElement('h3');
+                t.className = 'chart-custom-title';
+                t.style.cssText = 'margin: 0 0 15px 0; font-size: 1.2rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);';
+                div.parentElement.parentElement.insertBefore(t, div.parentElement);
+            }
+            t.innerText = titleText;
+        }
+
+        addTitle('chart_prod_vs_saida', 'PRODUÇÃO vs SAÍDA vs META');
+        addTitle('chart_fluxo', 'SALDO (PRODUÇÃO - SAÍDA)');
+        addTitle('chart_evolucao', 'EVOLUÇÃO DO ESTOQUE');
+
+        const chart1 = new google.visualization.ComboChart(document.getElementById('chart_prod_vs_saida'));
+        applyModernStyle(chart1, 'chart_prod_vs_saida');
+        chart1.draw(dt1, comboOpt);
+
+        const chart2 = new google.visualization.ColumnChart(document.getElementById('chart_fluxo'));
+        applyModernStyle(chart2, 'chart_fluxo');
+        chart2.draw(dt2, { ...modernOpt, title: null });
+
+        const chart3 = new google.visualization.AreaChart(document.getElementById('chart_evolucao'));
+        applyModernStyle(chart3, 'chart_evolucao'); 
+        chart3.draw(dt3, { ...modernOpt, title: null, colors: [colorArea], areaOpacity: 0.2, lineWidth: 3, pointSize: 6 });
+    }
+  }
+</script>

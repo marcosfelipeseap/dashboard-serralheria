@@ -1,0 +1,80 @@
+<style>
+  .goals-list { display: flex; flex-direction: column; gap: 18px; }
+  .goal-item { background: var(--card-bg); border: none; border-radius: 8px !important; overflow: hidden; box-shadow: var(--shadow); transition: 0.2s; }
+  .goal-head { padding: 20px 25px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); }
+  .goal-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; background: var(--card-bg); border-top: 1px solid var(--border-color); }
+  .goal-body.open { max-height: 800px; overflow-y: auto; }
+  .goal-row { display: flex; justify-content: space-between; padding: 15px 25px; border-bottom: 1px dashed var(--border-color); font-size: 0.95rem; font-weight: 500; }
+  .gh-title { font-weight: 700; font-size: 1.15rem; text-transform: uppercase; color: var(--text-main); }
+  .gh-badge { background: var(--input-bg); border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-left: 20px; color: var(--text-muted); }
+</style>
+
+<!-- SLIDE 4: METAS DETALHADAS -->
+<div class="slide fade" id="slide4" style="display: none;">
+  <div class="slide-header">
+    <div class="slide-title"><span class="material-icons">track_changes</span> METAS DETALHADAS</div>
+    <div style="font-size:1rem; font-weight: 700; color:var(--text-muted);">CLIQUE PARA EXPANDIR</div>
+  </div>
+  <div id="goalsAccordion" class="goals-list" style="padding:15px;"></div>
+</div>
+
+<script>
+  function renderSlide4() {
+    const dStart = getFilterDate('dateStart', false); 
+    const dEnd = getFilterDate('dateEnd', true);
+    const filtered = groupedData.filter(r => (!dStart || r.dateObj >= dStart) && (!dEnd || r.dateObj <= dEnd));
+    
+    const distinctItems = [...new Set([
+        ...filtered.map(r => r.item.toUpperCase()),
+        ...GOAL_RULES.map(r => r.name.toUpperCase())
+    ])].sort();
+
+    let html = ''; 
+    let displayCount = 0;
+
+    distinctItems.forEach((item) => {
+       const rule = GOAL_RULES.find(r => r.keywords.some(k => item.includes(k)));
+       if (!rule) return; 
+       
+       displayCount++;
+       const itemData = filtered.filter(r => rule.keywords.some(k => r.item.toUpperCase().includes(k)));
+       let details = '';
+
+       if (rule.type === 'day') {
+          const map = {}; 
+          itemData.forEach(r => { if(!map[r.data]) map[r.data]=0; map[r.data]+=r.producao; });
+          const dates = Object.keys(map).sort((a,b)=>parseDate(b)-parseDate(a));
+          
+          if (dates.length > 0) {
+              dates.forEach(d => {
+                 const badge = rule.target > 0 ? (map[d] >= rule.target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>') : '<span class="status-text st-none">SEM META</span>';
+                 const disp = rule.target > 0 ? ` / ${rule.target}` : '';
+                 details += `<div class="goal-row"><span class="gr-date">${d}</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">${map[d]}${disp}</span><span>${badge}</span></div>`;
+              });
+          } else {
+              details += `<div class="goal-row"><span class="gr-date">PERÍODO SELECIONADO</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">0${rule.target > 0 ? ' / ' + rule.target : ''}</span><span>${rule.target > 0 ? '<span class="status-text st-bad">INSUFICIENTE</span>' : '<span class="status-text st-none">-</span>'}</span></div>`;
+          }
+       } else {
+          const map = {};
+          itemData.forEach(r => { const w = getWeekData(r.dateObj); const k = `SEMANA ${w.num} (${w.start} - ${w.end})`; if(!map[k]) map[k]=0; map[k]+=r.producao; });
+          const weeks = Object.keys(map).sort().reverse();
+          
+          if(weeks.length > 0) {
+              weeks.forEach(wk => {
+                 const badge = rule.target > 0 ? (map[wk] >= rule.target ? '<span class="status-text st-ok">SATISFATÓRIO</span>' : '<span class="status-text st-bad">INSUFICIENTE</span>') : '<span class="status-text st-none">SEM META</span>';
+                 const disp = rule.target > 0 ? ` / ${rule.target}` : '';
+                 details += `<div class="goal-row"><span class="gr-date">${wk}</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">${map[wk]}${disp}</span><span>${badge}</span></div>`;
+              });
+          } else {
+              details += `<div class="goal-row"><span class="gr-date">PERÍODO SELECIONADO</span><span class="gr-nums" style="font-weight:800; font-size:1.1rem;">0${rule.target > 0 ? ' / ' + rule.target : ''}</span><span>${rule.target > 0 ? '<span class="status-text st-bad">INSUFICIENTE</span>' : '<span class="status-text st-none">-</span>'}</span></div>`;
+          }
+       }
+       html += `<div class="goal-item" id="gi-${displayCount}"><div class="goal-head" onclick="toggleAcc(${displayCount})"><div><span class="gh-title">${item}</span><span class="gh-badge d-none d-md-inline-block">META: ${rule.label}</span></div><span class="material-icons expand-icon">expand_more</span></div><div class="goal-body" id="gb-${displayCount}">${details}</div></div>`;
+    });
+    document.getElementById('goalsAccordion').innerHTML = html;
+  }
+
+  window.toggleAcc = function(id) { 
+      document.getElementById('gb-'+id).classList.toggle('open'); 
+  };
+</script>

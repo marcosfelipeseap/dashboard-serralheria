@@ -1,0 +1,332 @@
+<style>
+  /* AJUSTE DO ESTOQUE NO PC (SLIDE 2): Permite a quebra de linha e evita a rolagem horizontal */
+  @media (min-width: 1200px) {
+      #slide2 .stock-table td:nth-child(1) {
+          white-space: normal !important;
+          word-wrap: break-word !important;
+          max-width: 180px;
+          font-size: 0.8rem !important;
+          line-height: 1.3 !important;
+      }
+      #slide2 .stock-table td {
+          padding: 12px 10px !important;
+      }
+  }
+
+  /* CSS DO ACCORDION DO ESTOQUE (SLIDE 2) */
+  .est-row-header { transition: background 0.2s; }
+  .est-row-header.clickable { cursor: pointer; }
+  .est-row-header.clickable:hover { background-color: var(--table-row-hover); }
+  .est-row-header.active { background-color: var(--input-bg); border-left: 4px solid var(--accent); }
+  
+  .est-row-details { display: none; background: var(--input-bg); }
+  .est-row-details.open { display: table-row; animation: fadeEffect 0.3s ease; }
+  
+  .est-details-wrapper { padding: 15px 25px 15px 40px; border-bottom: 1px solid var(--border-color); }
+  .est-sub-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .est-sub-table th { text-align: center; color: var(--text-muted); font-weight: 700; padding: 8px; border-bottom: 2px solid var(--border-color); text-transform: uppercase; }
+  .est-sub-table th:first-child { text-align: left; }
+  .est-sub-table td { text-align: center; padding: 10px 8px; border-bottom: 1px dashed var(--border-color); font-weight: 600; color: var(--text-main); }
+  .est-sub-table td:first-child { text-align: left; color: var(--text-muted); text-transform: uppercase; }
+  .est-sub-table tr:last-child td { border-bottom: none; }
+
+  /* RESPONSIVIDADE MOBILE: SLIDE 2 */
+  @media (max-width: 1199px) {
+      #stockTableBody td::before { 
+          font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); 
+          flex-shrink: 0; max-width: 40%; white-space: normal; text-align: left; margin-right: 5px;
+      }
+      #stockTableBody td > * {
+          max-width: 60%; 
+          text-align: right;
+          word-break: break-word;
+          overflow-wrap: break-word;
+      }
+
+      #stockTableBody td:nth-child(1)::before { content: "Item"; }
+      #stockTableBody td:nth-child(2)::before { content: "Entrada (Per)"; }
+      #stockTableBody td:nth-child(3)::before { content: "Saída (Per)"; }
+      #stockTableBody td:nth-child(4)::before { content: "Saldo (Per)"; }
+      #stockTableBody td:nth-child(5)::before { content: "Estoque HOJE"; }
+
+      /* Mantém formato de blocos lado a lado com o gráfico */
+      #slide2 .chart-grid.grid-2 {
+          grid-template-columns: 1.2fr 1fr !important; 
+          gap: 10px !important;
+          align-items: flex-start !important;
+      }
+      #slide2 .stock-table-container {
+          height: 400px !important; 
+          max-height: 400px !important;
+          overflow-y: auto !important;
+          background: transparent !important;
+      }
+      #slide2 .stock-table tbody tr {
+          margin-bottom: 10px !important;
+          border-radius: 12px !important;
+      }
+      #slide2 .stock-table tbody td {
+          padding: 8px 10px !important;
+          font-size: clamp(0.65rem, 1.5vw, 0.8rem) !important;
+          gap: 5px !important;
+      }
+      #slide2 #stockTableBody td::before {
+          font-size: clamp(0.55rem, 1.2vw, 0.7rem) !important;
+      }
+      #slide2 .badge-stock {
+          padding: 4px 8px !important;
+          font-size: clamp(0.65rem, 1.5vw, 0.8rem) !important;
+      }
+      #slide2 .chart-card { padding: 10px !important; }
+      #chartTitle1 { font-size: 0.8rem !important; margin-bottom: 10px !important; }
+
+      /* Accordion Mobile */
+      .est-row-details { display: none !important; }
+      .est-row-details.open { display: flex !important; flex-direction: column; width: 100%; }
+      .est-row-details > td { padding: 0 !important; border: none !important; display: block; width: 100%; }
+      .est-details-wrapper { padding: 10px !important; margin: 0 15px 15px 15px; border-radius: 12px; background: var(--bg-color); border: 1px dashed var(--border-color); }
+      
+      .est-sub-table, .est-sub-table tbody { display: block; width: 100%; }
+      .est-sub-table thead { display: none; }
+      .est-sub-table tr { display: flex; flex-direction: column; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+      .est-sub-table tr:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+      .est-sub-table td { display: flex; justify-content: space-between; align-items: center; text-align: right !important; padding: 6px 0 !important; border: none !important; }
+      
+      .est-sub-table td:nth-child(1)::before { content: "Subcategoria"; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+      .est-sub-table td:nth-child(2)::before { content: "Entrada (Per)"; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+      .est-sub-table td:nth-child(3)::before { content: "Saída (Per)"; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+      .est-sub-table td:nth-child(4)::before { content: "Saldo (Per)"; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+      .est-sub-table td:nth-child(5)::before { content: "Estoque Final"; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+  }
+</style>
+
+<!-- SLIDE 2: ESTOQUE GERAL -->
+<div class="slide fade" id="slide2" style="display: none;">
+  <div class="slide-header">
+    <div class="slide-title"><span class="material-icons">warehouse</span> LISTA DE ESTOQUE</div>
+    <div class="filter-wrapper">
+      <select id="selOficina" onchange="renderSlide2()"><option value="Todas">TODAS AS OFICINAS</option></select>
+    </div>
+  </div>
+  <div class="chart-grid grid-2">
+    <div class="chart-card"><div class="stock-table-container"><table class="stock-table" id="stockTableBody"></table></div></div>
+    
+    <!-- CARD DO GRÁFICO MODERNIZADO -->
+    <div class="chart-card" style="padding: 30px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+         <div>
+            <h3 style="margin: 0; font-size: 1.4rem; font-weight: 800; color: var(--text-main);">Volume de Produção</h3>
+            <p id="chartTitle1" style="margin: 5px 0 15px 0; font-size: 0.9rem; color: var(--text-muted);"></p>
+            
+            <!-- Legenda Customizada em Bolinhas -->
+            <div style="display: flex; gap: 15px; font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+               <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; background-color: #10B981; border-radius: 50%;"></span> Produzido</div>
+               <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; background-color: #064E3B; border-radius: 50%;"></span> Entregue</div>
+            </div>
+         </div>
+      </div>
+      <div id="chart_efficiency" style="height: 350px; width: 100%;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function initSlide2Filters(oficinasGroup) {
+      const selOf = document.getElementById('selOficina');
+      if (!selOf) return;
+      selOf.innerHTML = '<option value="Todas">TODAS AS OFICINAS</option>';
+      oficinasGroup.forEach(o => selOf.add(new Option(o.toUpperCase(), o)));
+  }
+
+  function toggleEstoqueRow(idx) {
+      const row = document.getElementById(`est-det-${idx}`);
+      const head = document.getElementById(`est-head-${idx}`);
+      const icon = document.getElementById(`est-icon-${idx}`);
+      if (!row) return;
+      
+      if (row.classList.contains('open')) {
+          row.classList.remove('open');
+          head.classList.remove('active');
+          if(icon) icon.textContent = 'expand_more';
+      } else {
+          row.classList.add('open');
+          head.classList.add('active');
+          if(icon) icon.textContent = 'expand_less';
+      }
+  }
+
+  function renderSlide2() {
+    const selOficina = document.getElementById('selOficina').value; 
+    const dStart = getFilterDate('dateStart', false); 
+    const dEnd = getFilterDate('dateEnd', true);
+    const hasFilter = dStart || dEnd;
+    
+    const filtered = rawData.filter(r => {
+       if (selOficina !== "Todas" && r.oficina !== selOficina) return false;
+       if (dStart && r.dateObj < dStart) return false;
+       if (dEnd && r.dateObj > dEnd) return false;
+       if (!hasFilter && r.origem === 'PLANILHA') return false; 
+       return true;
+    });
+    
+    let minD = null, maxD = null; 
+    if(filtered.length > 0) { 
+        minD = new Date(Math.min(...filtered.map(r=>r.dateObj))); 
+        maxD = new Date(Math.max(...filtered.map(r=>r.dateObj))); 
+    }
+    
+    document.getElementById('chartTitle1').innerText = (minD && maxD) ? `Acompanhamento de ${fmtDate(minD)} até ${fmtDate(maxD)}` : "Sem dados no período";
+
+    const stockMap = {}, periodMap = {}; 
+    const stockSubMap = {}, periodSubPMap = {}, periodSubSMap = {}; 
+    let totalProd=0, totalSaida=0;
+    
+    rawData.forEach(r => { 
+       if (selOficina !== "Todas" && r.oficina !== selOficina) return; 
+       if (r.origem === 'PLANILHA') { if (!hasFilter) return; if (dStart && r.dateObj < dStart) return; if (dEnd && r.dateObj > dEnd) return; }
+       if(!stockMap[r.item]) { stockMap[r.item]=0; stockSubMap[r.item]={}; }
+       stockMap[r.item] += (r.producao - r.saida); 
+       sumSubgroups(stockSubMap[r.item], r.subgrupos_producao);
+       if(r.subgrupos_saida) { 
+           Object.keys(r.subgrupos_saida).forEach(k => { 
+               stockSubMap[r.item][k] = (stockSubMap[r.item][k] || 0) - Number(r.subgrupos_saida[k]); 
+           }); 
+       }
+    });
+    
+    filtered.forEach(r => { 
+       if(!periodMap[r.item]) { periodMap[r.item]={p:0, s:0}; periodSubPMap[r.item]={}; periodSubSMap[r.item]={}; } 
+       periodMap[r.item].p += r.producao; 
+       periodMap[r.item].s += r.saida; 
+       totalProd += r.producao; 
+       totalSaida += r.saida; 
+       sumSubgroups(periodSubPMap[r.item], r.subgrupos_producao); 
+       sumSubgroups(periodSubSMap[r.item], r.subgrupos_saida);
+    });
+
+    const allItems = [...new Set([...Object.keys(periodMap), ...Object.keys(stockMap)])].sort((a,b) => (stockMap[b]||0) - (stockMap[a]||0));
+    let html = `<thead><tr><th>Item</th><th>Entrada (Per)</th><th>Saída (Per)</th><th>Saldo (Per)</th><th>Estoque HOJE</th></tr></thead><tbody>`;
+    
+    allItems.forEach((item, idx) => {
+       const p = periodMap[item] || {p:0, s:0}; 
+       const s = stockMap[item] || 0; 
+       const saldo = p.p - p.s;
+       
+       const subP = periodSubPMap[item] || {};
+       const subS = periodSubSMap[item] || {};
+       const subSt = stockSubMap[item] || {};
+       
+       const allSubKeys = [...new Set([...Object.keys(subP), ...Object.keys(subS), ...Object.keys(subSt)])].filter(k => subP[k] || subS[k] || subSt[k]);
+       const hasSubs = allSubKeys.length > 0;
+
+       const clickAttr = hasSubs ? `onclick="toggleEstoqueRow(${idx})"` : '';
+       const iconHtml = hasSubs ? `<span class="material-icons" id="est-icon-${idx}" style="font-size:22px; color:var(--accent); margin-left:10px; vertical-align: middle;">expand_more</span>` : '';
+       
+       html += `<tr class="est-row-header ${hasSubs ? 'clickable' : ''}" id="est-head-${idx}" ${clickAttr}>
+          <td data-label="Item" style="text-transform: uppercase;">
+             <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <b>${idx+1}. ${item}</b>
+                ${iconHtml}
+             </div>
+          </td>
+          <td data-label="Entrada (Per)">
+             <div style="font-weight:700; font-size:1.1rem; color: var(--text-main);">${p.p}</div>
+          </td>
+          <td data-label="Saída (Per)">
+             <div style="font-weight:700; font-size:1.1rem; color: var(--text-main);">${p.s}</div>
+          </td>
+          <td data-label="Saldo (Per)">
+             <div style="font-weight:800; font-size:1.1rem; color:${saldo>=0?'var(--success)':'var(--danger)'}">${saldo}</div>
+          </td>
+          <td data-label="Estoque HOJE">
+             <span class="badge-stock ${s >= 0 ? 'bs-pos' : 'bs-neg'}">${s}</span>
+          </td>
+       </tr>`;
+
+       if (hasSubs) {
+           let subsRows = '';
+           allSubKeys.sort().forEach(k => {
+               const valP = subP[k] || 0;
+               const valS = subS[k] || 0;
+               const valSaldo = valP - valS;
+               const valSt = subSt[k] || 0;
+
+               subsRows += `
+               <tr>
+                   <td>${k}</td>
+                   <td>${valP}</td>
+                   <td>${valS}</td>
+                   <td style="color:${valSaldo>=0?'var(--success)':'var(--danger)'}">${valSaldo}</td>
+                   <td><span class="badge-stock ${valSt >= 0 ? 'bs-pos' : 'bs-neg'}" style="padding: 2px 6px; font-size: 0.75rem;">${valSt}</span></td>
+               </tr>`;
+           });
+
+           html += `
+           <tr class="est-row-details" id="est-det-${idx}">
+               <td colspan="5" style="padding: 0;">
+                   <div class="est-details-wrapper">
+                       <table class="est-sub-table">
+                           <thead>
+                               <tr><th>Subcategoria</th><th>Entrada (Per)</th><th>Saída (Per)</th><th>Saldo (Per)</th><th>Estoque Final</th></tr>
+                           </thead>
+                           <tbody>
+                               ${subsRows}
+                           </tbody>
+                       </table>
+                   </div>
+               </td>
+           </tr>`;
+       }
+    });
+    document.getElementById('stockTableBody').innerHTML = html;
+
+    const colorProd = '#10B981'; 
+    const colorSaida = '#064E3B'; 
+
+    const dt = google.visualization.arrayToDataTable([
+      ['Tipo', 'Qtd', {role: 'style'}], 
+      ['PRODUZIDO', totalProd, `color: ${colorProd};`], 
+      ['ENTREGUE', totalSaida, `color: ${colorSaida};`]  
+    ]);
+
+    const customOptions = {
+      ...getChartOptions(),
+      legend: 'none',
+      backgroundColor: 'transparent',
+      chartArea: { left: 60, right: 20, top: 20, bottom: 30 },
+      bar: { groupWidth: '40%' }, 
+      vAxis: {
+        textStyle: { color: '#9CA3AF', fontName: 'Poppins', fontSize: 13, bold: true },
+        gridlines: { color: 'transparent' },
+        baselineColor: 'transparent',
+        format: 'short',
+        minValue: 0,
+        viewWindow: { min: 0 }
+      },
+      hAxis: {
+        textStyle: { color: '#9CA3AF', fontName: 'Poppins', fontSize: 12, bold: true },
+        gridlines: { color: 'transparent' },
+        baselineColor: 'transparent'
+      }
+    };
+
+    const chartDiv = document.getElementById('chart_efficiency');
+    const chart = new google.visualization.ColumnChart(chartDiv);
+
+    google.visualization.events.addListener(chart, 'ready', function() {
+      setTimeout(() => {
+        const rects = chartDiv.querySelectorAll('svg rect');
+        rects.forEach(rect => {
+          const fill = (rect.getAttribute('fill') || '').toLowerCase();
+          if (fill === colorProd.toLowerCase() || fill === colorSaida.toLowerCase() || 
+              fill === 'rgb(16, 185, 129)' || fill === 'rgb(6, 78, 59)') {
+            rect.setAttribute('rx', '15');
+            rect.setAttribute('ry', '15');
+          }
+        });
+      }, 100); 
+    });
+
+    chart.draw(dt, customOptions);
+  }
+</script>
