@@ -241,13 +241,14 @@
            <img src="/images/logo.png" alt="Logo" style="height: 100px; max-width: 85%; object-fit: contain;">
         </div>
 
-        <div class="nav-item active" onclick="currentSlide(1)" title="Diário de Produção"><span class="material-icons">dashboard</span><span class="nav-text">DIÁRIO</span></div>
-        <div class="nav-item" onclick="currentSlide(2)" title="Estoque Geral"><span class="material-icons">warehouse</span><span class="nav-text">ESTOQUE</span></div>
-        <div class="nav-item" onclick="currentSlide(3)" title="Análise do Item"><span class="material-icons">query_stats</span><span class="nav-text">ANÁLISE</span></div>
-        <div class="nav-item" onclick="currentSlide(4)" title="Metas Detalhadas"><span class="material-icons">track_changes</span><span class="nav-text">METAS</span></div>
-        <div class="nav-item" onclick="currentSlide(5)" title="Controle de Processos"><span class="material-icons">assignment</span><span class="nav-text">PROCESSOS</span></div>
-        <div class="nav-item" onclick="currentSlide(6)" title="Cronograma"><span class="material-icons">calendar_month</span><span class="nav-text">CRONOGRAMA</span></div>
-        <div class="nav-item" onclick="currentSlide(7)" title="Produção por Oficina"><span class="material-icons">stacked_line_chart</span><span class="nav-text">OFICINAS</span></div>
+        <div class="nav-item active" onclick="currentSlide(1)" title="Apresentação Geral"><span class="material-icons">pie_chart</span><span class="nav-text">APRESENTAÇÃO</span></div>
+        <div class="nav-item" onclick="currentSlide(2)" title="Diário de Produção"><span class="material-icons">dashboard</span><span class="nav-text">DIÁRIO</span></div>
+        <div class="nav-item" onclick="currentSlide(3)" title="Estoque Geral"><span class="material-icons">warehouse</span><span class="nav-text">ESTOQUE</span></div>
+        <div class="nav-item" onclick="currentSlide(4)" title="Análise do Item"><span class="material-icons">query_stats</span><span class="nav-text">ANÁLISE</span></div>
+        <div class="nav-item" onclick="currentSlide(5)" title="Metas Detalhadas"><span class="material-icons">track_changes</span><span class="nav-text">METAS</span></div>
+        <div class="nav-item" onclick="currentSlide(6)" title="Controle de Processos"><span class="material-icons">assignment</span><span class="nav-text">PROCESSOS</span></div>
+        <div class="nav-item" onclick="currentSlide(7)" title="Cronograma"><span class="material-icons">calendar_month</span><span class="nav-text">CRONOGRAMA</span></div>
+        <div class="nav-item" onclick="currentSlide(8)" title="Produção por Oficina"><span class="material-icons">stacked_line_chart</span><span class="nav-text">OFICINAS</span></div>
        
         <a href="https://maroon-kingfisher-471984.hostingersite.com/" class="nav-item" title="Acessar Sistema">
             <span class="material-icons">login</span><span class="nav-text">ACESSAR SISTEMA</span>
@@ -270,6 +271,7 @@
           </div>
 
           <!-- TODAS AS PÁGINAS SEPARADAS EM PARTIALS -->
+          <%- include('partials/apresentacao') %>
           <%- include('partials/diario') %>
           <%- include('partials/estoque') %>
           <%- include('partials/analise') %>
@@ -360,7 +362,9 @@
               document.body.classList.add('loaded');
               
               setTimeout(() => { const l = document.getElementById('loader'); if(l) l.style.display = 'none'; }, 500);
-              updateAll(); 
+              
+              // Aqui forçamos a limpeza e mostramos a apresentação por defeito na primeira carga:
+              currentSlide(1); 
 
               if(typeof receiveProcessosData === 'function') {
                   receiveProcessosData(JSON.stringify(BACKEND_DATA.processos || []));
@@ -516,12 +520,13 @@
       }
 
       function refreshCurrentSlide() {
-        if (slideIndex === 1 && typeof renderSlide1 === 'function') renderSlide1(); 
-        if (slideIndex === 2 && typeof renderSlide2 === 'function') renderSlide2(); 
-        if (slideIndex === 3 && typeof renderSlide3 === 'function') renderSlide3(); 
-        if (slideIndex === 4 && typeof renderSlide4 === 'function') renderSlide4(); 
-        if (slideIndex === 6 && typeof initCronograma === 'function') { setTimeout(() => { initCronograma(); }, 150); }
-        if (slideIndex === 7 && typeof renderSlide7 === 'function') renderSlide7();
+        if (slideIndex === 1 && typeof renderSlideApresentacao === 'function') { setTimeout(() => { renderSlideApresentacao(); }, 100); }
+        if (slideIndex === 2 && typeof renderSlide1 === 'function') renderSlide1(); 
+        if (slideIndex === 3 && typeof renderSlide2 === 'function') renderSlide2(); 
+        if (slideIndex === 4 && typeof renderSlide3 === 'function') renderSlide3(); 
+        if (slideIndex === 5 && typeof renderSlide4 === 'function') renderSlide4(); 
+        if (slideIndex === 7 && typeof initCronograma === 'function') { setTimeout(() => { initCronograma(); }, 150); }
+        if (slideIndex === 8 && typeof renderSlide7 === 'function') renderSlide7();
       }
 
       function getFilterDate(id, isEnd) {

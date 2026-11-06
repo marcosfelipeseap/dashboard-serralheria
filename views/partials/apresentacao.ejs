@@ -1,0 +1,354 @@
+<!-- =========================================================
+     PÁGINA: APRESENTAÇÃO GERAL (SISTEMA + PLANILHA)
+     ========================================================= -->
+<div id="slideApresentacao" class="slide">
+  
+    <!-- Cabeçalho Executivo -->
+    <div class="slide-header" style="background: var(--accent-gradient); color: white; padding: 35px 30px; border-radius: 12px; margin-bottom: 30px;">
+      <div>
+        <h2 style="font-size: 1.6rem; font-weight: 800; margin: 0 0 10px 0; color: white; text-transform: uppercase; display: flex; align-items: center; gap: 10px;">
+          <span class="material-icons" style="font-size: 32px;">pie_chart</span> Painel Geral de Produção
+        </h2>
+        <p style="font-size: 0.95rem; margin: 0; opacity: 0.9; font-weight: 500;">Acompanhe o volume total de itens fabricados e a evolução, integrando o histórico da planilha antiga e o novo sistema.</p>
+      </div>
+    </div>
+  
+    <!-- ==========================================
+         SEÇÃO 1: DADOS ATUAIS (SISTEMA - BANCO)
+         ========================================== -->
+    <div style="margin-bottom: 40px;">
+      <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin-bottom: 5px; text-transform: uppercase; border-left: 5px solid var(--accent); padding-left: 10px;">🖥️ DADOS DO SISTEMA (A partir de 13/06)</h3>
+      <p id="lblPeriodoSistema" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 20px; padding-left: 15px;">Calculando período...</p>
+  
+      <!-- Cards Principais -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 30px;">
+        <div class="chart-card" style="padding: 25px; border-left: 6px solid var(--accent);">
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; letter-spacing: 0.5px;">Total no Período (Sistema)</span>
+          <h3 id="apresTotalGeralSis" style="font-size: 2.2rem; font-weight: 800; color: var(--text-main); margin: 10px 0 5px 0; line-height: 1;">0</h3>
+          <span style="font-size: 0.85rem; font-weight: 600; color: var(--accent); display: block;">itens fabricados</span>
+        </div>
+        <div class="chart-card" style="padding: 25px; border-left: 6px solid #3B82F6;">
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; letter-spacing: 0.5px;">Média Mensal</span>
+          <h3 id="apresMediaMensalGeralSis" style="font-size: 2.2rem; font-weight: 800; color: var(--text-main); margin: 10px 0 5px 0; line-height: 1;">0</h3>
+          <span style="font-size: 0.85rem; font-weight: 600; color: #3B82F6; display: block;">média de itens por mês</span>
+        </div>
+      </div>
+  
+      <!-- Gráficos Visuais -->
+      <div class="chart-grid grid-2" style="margin-bottom: 30px;">
+        <div class="chart-card" style="padding: 20px;">
+          <h3 style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 20px; text-transform: uppercase;">📊 Produção por Item (Top 10)</h3>
+          <div id="graficoItensApresSis" style="height: 360px; width: 100%;"></div>
+        </div>
+        <div class="chart-card" style="padding: 20px;">
+          <h3 style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 20px; text-transform: uppercase;">📈 Evolução Mensal (Soma de todos os itens)</h3>
+          <div id="graficoMesApresSis" style="height: 360px; width: 100%;"></div>
+        </div>
+      </div>
+  
+      <!-- Grade de Tabelas -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 40px;">
+        <div class="chart-card" style="padding: 20px;">
+          <h3 style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase;">
+            <span class="material-icons" style="color: var(--accent);">inventory_2</span> Ranking de Itens
+          </h3>
+          <div class="stock-table-container" style="height: 280px;">
+            <table class="stock-table">
+              <thead><tr><th>Item</th><th style="text-align: right; width: 120px;">Qtd.</th></tr></thead>
+              <tbody id="tabelaGeralItensSis"></tbody>
+            </table>
+          </div>
+        </div>
+  
+        <div class="chart-card" style="padding: 20px;">
+          <h3 style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase;">
+            <span class="material-icons" style="color: #8B5CF6;">store</span> Por Oficina
+          </h3>
+          <div class="stock-table-container" style="height: 280px;">
+            <table class="stock-table">
+              <thead><tr><th>Oficina</th><th style="text-align: right; width: 120px;">Qtd.</th></tr></thead>
+              <tbody id="tabelaOficinasGeralSis"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 40px 0;">
+  
+    <!-- ==========================================
+         SEÇÃO 2: DADOS HISTÓRICOS (PLANILHA)
+         ========================================== -->
+    <div style="margin-bottom: 40px;">
+      <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin-bottom: 5px; text-transform: uppercase; border-left: 5px solid #F59E0B; padding-left: 10px;">🕰️ HISTÓRICO (PLANILHA - Até 12/06)</h3>
+      <p id="lblPeriodoPlanilha" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 20px; padding-left: 15px;">Calculando período...</p>
+  
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 30px;">
+        <div class="chart-card" style="padding: 25px; border-left: 6px solid #F59E0B;">
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; letter-spacing: 0.5px;">Total Histórico</span>
+          <h3 id="apresTotalGeralAnt" style="font-size: 2.2rem; font-weight: 800; color: var(--text-main); margin: 10px 0 5px 0; line-height: 1;">0</h3>
+          <span style="font-size: 0.85rem; font-weight: 600; color: #F59E0B; display: block;">itens produzidos (planilha)</span>
+        </div>
+      </div>
+  
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 40px;">
+        <div class="chart-card" style="padding: 20px;">
+          <h3 style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase;">
+            <span class="material-icons" style="color: #F59E0B;">inventory_2</span> Histórico por Item
+          </h3>
+          <div class="stock-table-container" style="height: 280px;">
+            <table class="stock-table">
+              <thead><tr><th>Item</th><th style="text-align: right; width: 120px;">Qtd.</th></tr></thead>
+              <tbody id="tabelaGeralItensAnt"></tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div class="chart-card" style="padding: 20px;">
+          <h3 style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase;">
+            <span class="material-icons" style="color: #F59E0B;">calendar_today</span> Histórico Mensal
+          </h3>
+          <div class="stock-table-container" style="height: 280px;">
+            <table class="stock-table">
+              <thead><tr><th>Mês</th><th style="text-align: right; width: 120px;">Qtd.</th></tr></thead>
+              <tbody id="tabelaMediaMesAnt"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 40px 0;">
+  
+    <!-- ==========================================
+         SEÇÃO 3: PRODUÇÃO UNIFICADA (FILTRO RÁPIDO)
+         ========================================== -->
+    <div class="chart-card" style="padding: 25px; margin-top: 25px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+        <div>
+          <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px; text-transform: uppercase;">
+            <span class="material-icons" style="color: var(--success);">filter_alt</span> Filtro Unificado e Agrupado
+          </h3>
+          <p style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0 0 5px 0;">Análise juntando Sistema + Planilha. Variações do mesmo item são agrupadas juntas.</p>
+          <p id="lblPeriodoFiltroRapido" style="font-size: 0.85rem; font-weight: 700; color: var(--accent); margin: 0;">Calculando período...</p>
+        </div>
+  
+        <div class="filter-wrapper" style="width: auto;">
+          <input type="month" id="apresFiltroMes" onchange="mudarFiltroMesApresentacao()" style="width: 140px; min-width: 140px;">
+          <input type="date" id="apresFiltroInicio" onchange="document.getElementById('apresFiltroMes').value=''; renderSlideApresentacao()">
+          <input type="date" id="apresFiltroFim" onchange="document.getElementById('apresFiltroMes').value=''; renderSlideApresentacao()">
+          <button class="theme-btn" onclick="renderSlideApresentacao()" style="background: var(--success-bg) !important; color: var(--success) !important; font-weight:bold;">FILTRAR</button>
+        </div>
+      </div>
+      
+      <div class="stock-table-container" style="height: auto; max-height: 400px; margin-bottom: 20px;">
+        <table class="stock-table">
+          <thead>
+            <tr><th>Item (Geral Agrupado)</th><th style="text-align: right; width: 120px;">Quantidade Total</th></tr>
+          </thead>
+          <tbody id="tabelaFiltroPersonalizado"></tbody>
+        </table>
+      </div>
+  
+      <div style="background: var(--input-bg); padding: 20px 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px dashed var(--border-color);">
+        <span style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); text-transform: uppercase;">Total de Itens neste Período:</span>
+        <h3 id="apresTotalFiltrado" style="font-size: 1.8rem; font-weight: 900; color: var(--success); margin: 0;">0</h3>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function mudarFiltroMesApresentacao() {
+      const mesVal = document.getElementById('apresFiltroMes').value;
+      if (mesVal) {
+        const [ano, mes] = mesVal.split('-');
+        document.getElementById('apresFiltroInicio').value = `${ano}-${mes}-01`;
+        document.getElementById('apresFiltroFim').value = new Date(ano, mes, 0).toISOString().split('T')[0];
+        renderSlideApresentacao();
+      }
+    }
+  
+    // ==========================================
+    // LÓGICA DE AGRUPAMENTO DE NOMES (Filtro Unificado)
+    // ==========================================
+    function agruparNomeUnificado(nome) {
+      if (!nome) return "DESCONHECIDO";
+      let n = nome.toUpperCase().trim();
+      
+      // 1. Regras explícitas para os itens mais comuns da marcenaria/serralheria
+      if (n.includes('CARTEIRA ESCOLAR')) return 'CARTEIRA ESCOLAR';
+      if (n.includes('CADEIRA FIXA')) return 'CADEIRA FIXA';
+      if (n.includes('GIRATÓRIA') || n.includes('GIRATORIA')) return 'CADEIRA GIRATÓRIA';
+      if (n.includes('LONGARINA')) return 'LONGARINA';
+      if (n.includes('REFEITÓRIO') || n.includes('REFEITORIO')) return 'CONJUNTO REFEITÓRIO';
+      if (n.includes('PROFESSOR')) return 'MESA DE PROFESSOR';
+      if (n.includes('MESA C/') || n.includes('MESA CONJUNTO')) return 'MESA CONJUNTO ALUNO';
+      
+      // 2. Limpeza genérica de atributos (retira cores, lados, especificações)
+      n = n.replace(/ DESTRA/g, '').replace(/ CANHOTA/g, '');
+      n = n.replace(/ PRETA/g, '').replace(/ AZUL/g, '').replace(/ BRANCA/g, '');
+      n = n.replace(/ VERMELHA/g, '').replace(/ VERDE/g, '').replace(/ AMARELA/g, '');
+      n = n.replace(/ EM POLIPROPILENO/g, '');
+      n = n.replace(/ COM BRAÇO/g, '').replace(/ SEM BRAÇO/g, '');
+      
+      // Retorna limpando espaços duplos que possam ter sobrado
+      return n.replace(/\s+/g, ' ').trim();
+    }
+  
+    function renderSlideApresentacao() {
+      // 1. Pegar Filtros Globais (Top Bar)
+      const gStart = getFilterDate('dateStart', false) || new Date(1900, 0, 1);
+      const gEnd = getFilterDate('dateEnd', true) || new Date(2100, 11, 31);
+  
+      // 2. Pegar Filtros Locais (Seção Unificada)
+      const customStartStr = document.getElementById('apresFiltroInicio').value;
+      const customEndStr = document.getElementById('apresFiltroFim').value;
+      const customStart = customStartStr ? new Date(customStartStr + 'T00:00:00') : new Date(1900, 0, 1);
+      const customEnd = customEndStr ? new Date(customEndStr + 'T23:59:59') : new Date(2100, 11, 31);
+  
+      // Variáveis de Estado
+      let mapItensSis = {}, mapMesSis = {}, mapOfcSis = {}, totSis = 0;
+      let mapItensAnt = {}, mapMesAnt = {}, mapOfcAnt = {}, totAnt = 0;
+      let mapItensUni = {}, totUni = 0;
+      let minSis = new Date(3000,0,1), maxSis = new Date(1900,0,1);
+      let minAnt = new Date(3000,0,1), maxAnt = new Date(1900,0,1);
+      let minUni = new Date(3000,0,1), maxUni = new Date(1900,0,1);
+  
+      // Varredura nos Dados Brutos
+      rawData.forEach(r => {
+        const qtd = r.producao || 0; 
+        if (qtd <= 0 || !r.item) return;
+        
+        const nomeItem = r.item;
+        const nomeOficina = r.oficina || 'Geral';
+        const d = r.dateObj;
+  
+        // Lógica de Filtro Global (SISTEMA vs PLANILHA)
+        if (d >= gStart && d <= gEnd) {
+          const mesStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  
+          if (r.origem === 'BANCO') {
+            totSis += qtd;
+            mapItensSis[nomeItem] = (mapItensSis[nomeItem] || 0) + qtd;
+            mapOfcSis[nomeOficina] = (mapOfcSis[nomeOficina] || 0) + qtd;
+            mapMesSis[mesStr] = (mapMesSis[mesStr] || 0) + qtd;
+            if (d < minSis) minSis = d; if (d > maxSis) maxSis = d;
+          } 
+          else if (r.origem === 'PLANILHA') {
+            totAnt += qtd;
+            mapItensAnt[nomeItem] = (mapItensAnt[nomeItem] || 0) + qtd;
+            mapOfcAnt[nomeOficina] = (mapOfcAnt[nomeOficina] || 0) + qtd;
+            mapMesAnt[mesStr] = (mapMesAnt[mesStr] || 0) + qtd;
+            if (d < minAnt) minAnt = d; if (d > maxAnt) maxAnt = d;
+          }
+        }
+  
+        // Lógica de Filtro Unificado e AGRUPADO
+        if (d >= customStart && d <= customEnd) {
+          totUni += qtd;
+          const nomeAgrupado = agruparNomeUnificado(nomeItem); 
+          mapItensUni[nomeAgrupado] = (mapItensUni[nomeAgrupado] || 0) + qtd;
+          if (d < minUni) minUni = d; if (d > maxUni) maxUni = d;
+        }
+      });
+  
+      // Funções auxiliares de renderização de tabela
+      const popularTabela = (tbodyId, mapa, corBadge) => {
+        const tb = document.getElementById(tbodyId);
+        tb.innerHTML = '';
+        const arr = Object.entries(mapa).sort((a, b) => b[1] - a[1]);
+        if (arr.length === 0) { tb.innerHTML = `<tr><td colspan="2" style="text-align:center;">Sem dados</td></tr>`; return arr; }
+        
+        arr.forEach(([nome, valor]) => {
+          tb.innerHTML += `<tr>
+            <td style="font-weight: 600;">${nome}</td>
+            <td style="text-align: right;">
+              <span class="badge-stock" style="background:var(--card-bg); color:${corBadge}; border:1px solid currentColor; white-space: nowrap; display: inline-block;">
+                ${valor.toLocaleString('pt-BR')} un
+              </span>
+            </td>
+          </tr>`;
+        });
+        return arr;
+      };
+  
+      // Atualizar Textos e Tabelas - SISTEMA
+      document.getElementById('lblPeriodoSistema').innerText = totSis > 0 ? `Período: ${fmtDateBr(minSis)} a ${fmtDateBr(maxSis)}` : 'Sem registros.';
+      document.getElementById('apresTotalGeralSis').innerText = totSis.toLocaleString('pt-BR');
+      document.getElementById('apresMediaMensalGeralSis').innerText = Math.round(totSis / (Object.keys(mapMesSis).length || 1)).toLocaleString('pt-BR');
+      
+      const arrItensSis = popularTabela('tabelaGeralItensSis', mapItensSis, 'var(--accent)');
+      popularTabela('tabelaOficinasGeralSis', mapOfcSis, '#8B5CF6');
+  
+      // Atualizar Textos e Tabelas - PLANILHA
+      document.getElementById('lblPeriodoPlanilha').innerText = totAnt > 0 ? `Período: ${fmtDateBr(minAnt)} a ${fmtDateBr(maxAnt)}` : 'Sem registros.';
+      document.getElementById('apresTotalGeralAnt').innerText = totAnt.toLocaleString('pt-BR');
+      
+      popularTabela('tabelaGeralItensAnt', mapItensAnt, '#F59E0B');
+      const arrMesAnt = Object.entries(mapMesAnt).sort((a, b) => b[0].localeCompare(a[0]));
+      const tbMesAnt = document.getElementById('tabelaMediaMesAnt'); tbMesAnt.innerHTML = '';
+      arrMesAnt.forEach(([m, v]) => tbMesAnt.innerHTML += `<tr><td style="font-weight:600;">${m.split('-')[1]}/${m.split('-')[0]}</td><td style="text-align:right;"><span class="badge-stock" style="background:var(--card-bg); color:var(--success); border:1px solid currentColor; white-space: nowrap; display: inline-block;">${v.toLocaleString('pt-BR')} un</span></td></tr>`);
+  
+      // Atualizar Unificado
+      document.getElementById('lblPeriodoFiltroRapido').innerText = totUni > 0 ? `Período analisado: ${fmtDateBr(minUni)} a ${fmtDateBr(maxUni)}` : 'Sem registros.';
+      document.getElementById('apresTotalFiltrado').innerText = totUni.toLocaleString('pt-BR') + ' itens';
+      popularTabela('tabelaFiltroPersonalizado', mapItensUni, 'var(--success)');
+  
+      // Renderizar Google Charts do Sistema
+      if(window.google && google.visualization) {
+        desenharGraficosApresentacao(arrItensSis, mapMesSis);
+      } else {
+        google.charts.setOnLoadCallback(() => desenharGraficosApresentacao(arrItensSis, mapMesSis));
+      }
+    }
+  
+    function fmtDateBr(d) {
+      if (!d || isNaN(d.getTime())) return '-';
+      return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+  
+    function desenharGraficosApresentacao(arrItensSis, mapMesSis) {
+      // 1. Gráfico de Itens (Top 10)
+      let dataItens = new google.visualization.DataTable();
+      dataItens.addColumn('string', 'Item');
+      dataItens.addColumn('number', 'Itens');
+      dataItens.addColumn({type: 'string', role: 'annotation'});
+  
+      arrItensSis.slice(0, 10).forEach(([item, qtd]) => {
+        // Reduzido para 28 caracteres. Equilíbrio ideal entre ler o nome e não quebrar.
+        let label = item.length > 28 ? item.substring(0, 25) + '...' : item;
+        dataItens.addRow([label, qtd, qtd.toLocaleString('pt-BR')]);
+      });
+  
+      let optsItens = getChartOptions();
+      optsItens.colors = ['#001E7A'];
+      optsItens.legend = {position: 'none'};
+      
+      // MARGEM ESQUERDA AUMENTADA (left: '25%') para o primeiro item não ser cortado
+      // HEIGHT MANTIDA ('40%') para dar espaço à inclinação das palavras
+      optsItens.chartArea = { left: '25%', right: '5%', top: 30, height: '40%' }; 
+      let chartItens = new google.visualization.ColumnChart(document.getElementById('graficoItensApresSis'));
+      chartItens.draw(dataItens, optsItens);
+  
+      // 2. Gráfico de Meses
+      let dataMes = new google.visualization.DataTable();
+      dataMes.addColumn('string', 'Mês');
+      dataMes.addColumn('number', 'Itens');
+      dataMes.addColumn({type: 'string', role: 'annotation'});
+  
+      const arrMes = Object.entries(mapMesSis).sort((a,b) => a[0].localeCompare(b[0]));
+      arrMes.forEach(([anoMes, qtd]) => {
+        let lbl = `${anoMes.split('-')[1]}/${anoMes.split('-')[0].substring(2,4)}`;
+        dataMes.addRow([lbl, qtd, qtd.toLocaleString('pt-BR')]);
+      });
+  
+      let optsMes = getChartOptions();
+      optsMes.colors = ['#3B82F6'];
+      optsMes.legend = {position: 'none'};
+      optsMes.curveType = 'function';
+      optsMes.pointSize = 6;
+      optsMes.chartArea = { left: '15%', right: '5%', top: 30, height: '65%' };
+      let chartMes = new google.visualization.LineChart(document.getElementById('graficoMesApresSis'));
+      chartMes.draw(dataMes, optsMes);
+    }
+  </script>
